@@ -1,9 +1,10 @@
 #include "Sphere.h"
 
-Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color)
+Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius)
 {
 	this->position = position;
 	this->color = color;
+	this->radius = radius;
 }
 
 void Sphere::update(sf::RenderWindow& window, sf::Time time)
@@ -16,7 +17,7 @@ void Sphere::render(sf::RenderWindow& window)
 
 const sf::Vector2f& Sphere::insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction)
 {
-	auto oc = Math::subTract(cameraPosition, this->getPosition());
+	auto oc = cameraPosition - this->getPosition();
 
 	float a = Math::GetDotProduct(direction, direction);
 	float b = 2.f * Math::GetDotProduct(oc, direction);

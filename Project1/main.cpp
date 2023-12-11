@@ -6,18 +6,26 @@
 #include "Camera.h"
 #include "Render.h"
 #include "Sphere.h"
+#include "Light/AmbientLight.h"
+#include "Light/DirectionalLight.h"
+#include "Light/PointLight.h"
 
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(600, 600), "SFML works!");
 
 	auto* objects = new std::vector<Object*>();
+	auto* lights = new std::vector<Light*>();
 
 	objects->push_back(new Sphere(sf::Vector3f(0, -1, 3), sf::Color(255,0 ,0, 255)));
 	objects->push_back(new Sphere(sf::Vector3f(2, 0, 4), sf::Color(0, 0, 255, 255)));
 	objects->push_back(new Sphere(sf::Vector3f(-2, 0, 4), sf::Color(0, 255, 0, 255)));
+	objects->push_back(new Sphere(sf::Vector3f(0, -5001, 0), sf::Color(255, 255, 0, 255), 5000));
 
-	Scene* scene = new Scene(objects, new Camera(0, 0, 0));
+	lights->push_back(new PointLight(sf::Vector3f(0, 4, 3), 2.0f));
+	//lights->push_back(new DirectionalLight(sf::Vector3f(-4, 0, 0), 0.6f));
+
+	Scene* scene = new Scene(objects, lights, new Camera(0, 0, 0));
 
 	sf::Clock clock;
 	Render *render = new Render(600, 600);

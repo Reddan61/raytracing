@@ -131,11 +131,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Light\AmbientLight.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Light\DirectionalLight.cpp" />
+    <ClCompile Include="Light\Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Pixel.cpp" />
+    <ClCompile Include="Light\PointLight.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sphere.cpp" />
@@ -155,10 +159,14 @@
     <None Include="sfml-window-d-2.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Light\AmbientLight.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Light\DirectionalLight.h" />
+    <ClInclude Include="Light\Light.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Pixel.h" />
+    <ClInclude Include="Light\PointLight.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sphere.h" />

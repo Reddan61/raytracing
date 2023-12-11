@@ -39,11 +39,37 @@ const sf::Color& Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf
 		}
 	}
 
-	if (closest_object != nullptr) {
-		return closest_object->getColor();
+	if (closest_object == nullptr) {
+		return sf::Color(255, 255, 255, 255);
 	}
 
-	return sf::Color(0, 0, 0, 255);
+	sf::Vector3f point = cameraPosition + (direction * closest_t);
+	sf::Vector3f normal = point - closest_object->getPosition();
+	normal = (1.0f / Math::LengthVector(normal)) * normal;
+
+	return Math::Multiply(this->ComputeLighting(scene, point, normal), closest_object->getColor());
+}
+
+float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& normal)
+{
+	float bright = scene->getSceneAmbientLight()->getBright();
+	float length_n = Math::LengthVector(normal);
+
+	auto lights = scene->getSceneLights();
+
+	for (int i = 0; i < lights->size(); i++) {
+		Light *light = lights->at(i);
+
+		auto lightVector = light->getLightVector(point);
+
+		auto n_dot_l = Math::GetDotProduct(normal, lightVector);
+
+		if (n_dot_l > 0) {
+			bright += light->getBright() * n_dot_l / ( length_n * Math::LengthVector(lightVector));
+		}
+	}
+
+	return bright;
 }
 
 void Render::calculate(Scene* scene)
