@@ -10,4 +10,9 @@ const sf::Color& Object::getColor()
 	return this->color;
 }
 
+float Object::getSpecular()
+{
+	return this->specular;
+}
+
 

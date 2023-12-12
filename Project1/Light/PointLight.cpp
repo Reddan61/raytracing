@@ -1,11 +1,15 @@
 #include "PointLight.h"
 
-PointLight::PointLight(const sf::Vector3f& const position, float bright): Light(bright)
+PointLight::PointLight(const sf::Vector3f& const position, float bright): Light(position, bright)
 {
-	this->position = position;
 }
 
 sf::Vector3f PointLight::getLightVector(sf::Vector3f& point)
 {
-	return this->position - point;
+	return this->getPosition() - point;
+}
+
+bool PointLight::hasPosition()
+{
+	return true;
 }

@@ -1,11 +1,13 @@
 #pragma once
-class AmbientLight
+#include "Light.h"
+#include "../Math.h"
+
+class AmbientLight : public Light
 {
 public:
 	AmbientLight(float bright);
 
-	float getBright();
-private:
-	float bright = 0;
+	sf::Vector3f getLightVector(sf::Vector3f& point) override;
+	bool hasPosition() override;
 };
 

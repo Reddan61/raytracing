@@ -17,13 +17,14 @@ int main()
 	auto* objects = new std::vector<Object*>();
 	auto* lights = new std::vector<Light*>();
 
-	objects->push_back(new Sphere(sf::Vector3f(0, -1, 3), sf::Color(255,0 ,0, 255)));
-	objects->push_back(new Sphere(sf::Vector3f(2, 0, 4), sf::Color(0, 0, 255, 255)));
-	objects->push_back(new Sphere(sf::Vector3f(-2, 0, 4), sf::Color(0, 255, 0, 255)));
-	objects->push_back(new Sphere(sf::Vector3f(0, -5001, 0), sf::Color(255, 255, 0, 255), 5000));
+	objects->push_back(new Sphere(sf::Vector3f(0, -1, 3), sf::Color(255,0 ,0, 255), 1, 500));
+	objects->push_back(new Sphere(sf::Vector3f(2, 0, 4), sf::Color(0, 0, 255, 255), 1, 500));
+	objects->push_back(new Sphere(sf::Vector3f(-2, 0, 4), sf::Color(0, 255, 0, 255), 1, 10));
+	objects->push_back(new Sphere(sf::Vector3f(0, -5001, 0), sf::Color(255, 255, 0, 255), 5000, 100));
 
-	lights->push_back(new PointLight(sf::Vector3f(0, 4, 3), 2.0f));
-	//lights->push_back(new DirectionalLight(sf::Vector3f(-4, 0, 0), 0.6f));
+	lights->push_back(new AmbientLight(0.2f));
+	lights->push_back(new PointLight(sf::Vector3f(2, 1, 0), 0.6f));
+	lights->push_back(new DirectionalLight(sf::Vector3f(1, 4, 4), 0.2f));
 
 	Scene* scene = new Scene(objects, lights, new Camera(0, 0, 0));
 
@@ -45,6 +46,8 @@ int main()
 		render->update(scene, window, time);
 
 		window.display();
+		
+		std::cout << "fps: " << 1.f / clock.getElapsedTime().asSeconds() << std::endl;
 	}
 
 	return 0;

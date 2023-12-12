@@ -13,14 +13,12 @@ public:
 
 	std::vector<Object*>* getSceneObjects();
 	std::vector<Light*>* getSceneLights();
-	AmbientLight* getSceneAmbientLight();
 	Camera*& getCamera();
 
 	void update(sf::RenderWindow &window, sf::Time time);
 private:
 	std::vector<Object*> *SceneObjects = nullptr;
 	std::vector<Light*> *SceneLights = nullptr;
-	AmbientLight* SceneAmbientLight = nullptr;
 	Camera* camera = nullptr;
 
 	void renderObjects(sf::RenderWindow &window, sf::Time time);

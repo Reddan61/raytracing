@@ -1,10 +1,11 @@
 #include "Sphere.h"
 
-Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius)
+Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius, float specular)
 {
 	this->position = position;
 	this->color = color;
 	this->radius = radius;
+	this->specular = specular;
 }
 
 void Sphere::update(sf::RenderWindow& window, sf::Time time)

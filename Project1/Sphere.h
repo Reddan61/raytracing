@@ -6,7 +6,7 @@
 class Sphere : public Object
 {
 public:
-	Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius = 1);
+	Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius = 1, float specular = -1);
 	void update(sf::RenderWindow& window, sf::Time time) override;
 
 private:

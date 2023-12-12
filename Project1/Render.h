@@ -17,6 +17,6 @@ private:
 	void calculate(Scene* scene);
 	const sf::Vector3f & calculateDirection(int x, int y);
 	const sf::Color& traceRay(Scene* scene, sf::Vector3f &cameraPosition, sf::Vector3f &direction, int min_t, int max_t);
-	float ComputeLighting(Scene* scene, sf::Vector3f &point, sf::Vector3f &normal);
+	float ComputeLighting(Scene* scene, sf::Vector3f &point, sf::Vector3f &normal, sf::Vector3f &view, float specular);
 };
 

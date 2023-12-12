@@ -47,18 +47,30 @@ const sf::Color& Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf
 	sf::Vector3f normal = point - closest_object->getPosition();
 	normal = (1.0f / Math::LengthVector(normal)) * normal;
 
-	return Math::Multiply(this->ComputeLighting(scene, point, normal), closest_object->getColor());
+	sf::Vector3f view = -1.f * direction;
+
+	auto lighting = this->ComputeLighting(scene, point, normal, view, closest_object->getSpecular());
+
+	return Math::Multiply(lighting, closest_object->getColor());
 }
 
-float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& normal)
+float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& normal, sf::Vector3f& view, float specular)
 {
-	float bright = scene->getSceneAmbientLight()->getBright();
+	float bright = 0;
 	float length_n = Math::LengthVector(normal);
+	float length_v = Math::LengthVector(view);
 
 	auto lights = scene->getSceneLights();
 
 	for (int i = 0; i < lights->size(); i++) {
 		Light *light = lights->at(i);
+
+		// Ambient light
+		if (!light->hasPosition()) {
+			bright += light->getBright();
+			
+			continue;
+		}
 
 		auto lightVector = light->getLightVector(point);
 
@@ -66,6 +78,16 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 
 		if (n_dot_l > 0) {
 			bright += light->getBright() * n_dot_l / ( length_n * Math::LengthVector(lightVector));
+		}
+
+		if (specular != -1) {
+			auto vec_r = ((2.0f * Math::GetDotProduct(normal, lightVector)) * normal) - lightVector;
+			
+			float r_dot_v = Math::GetDotProduct(vec_r, view);
+
+			if (r_dot_v > 0) {
+				bright += light->getBright() * std::pow(r_dot_v / (Math::LengthVector(vec_r) * length_v), specular);
+			}
 		}
 	}
 

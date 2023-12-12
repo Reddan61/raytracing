@@ -1,11 +1,15 @@
 #include "AmbientLight.h"
 
-AmbientLight::AmbientLight(float bright)
+AmbientLight::AmbientLight(float bright) : Light(sf::Vector3f(Infinity, Infinity, Infinity), bright)
 {
-	this->bright = bright;
 }
 
-float AmbientLight::getBright()
+sf::Vector3f AmbientLight::getLightVector(sf::Vector3f& point)
 {
-	return this->bright;
+	return this->getPosition();
+}
+
+bool AmbientLight::hasPosition()
+{
+	return false;
 }
