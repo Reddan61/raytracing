@@ -13,3 +13,8 @@ bool AmbientLight::hasPosition()
 {
 	return false;
 }
+
+float AmbientLight::getMaxT()
+{
+	return Infinity;
+}

@@ -16,7 +16,8 @@ private:
 	Viewport *viewport = nullptr;
 	void calculate(Scene* scene);
 	const sf::Vector3f & calculateDirection(int x, int y);
-	const sf::Color& traceRay(Scene* scene, sf::Vector3f &cameraPosition, sf::Vector3f &direction, int min_t, int max_t);
+	const sf::Color& traceRay(Scene* scene, sf::Vector3f &cameraPosition, sf::Vector3f &direction, float min_t, float max_t);
 	float ComputeLighting(Scene* scene, sf::Vector3f &point, sf::Vector3f &normal, sf::Vector3f &view, float specular);
+	std::pair<Object*, float>& getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t);
 };
 

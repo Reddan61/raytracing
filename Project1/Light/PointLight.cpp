@@ -13,3 +13,8 @@ bool PointLight::hasPosition()
 {
 	return true;
 }
+
+float PointLight::getMaxT()
+{
+	return 1.0f;
+}

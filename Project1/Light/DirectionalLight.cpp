@@ -13,3 +13,8 @@ bool DirectionalLight::hasPosition()
 {
 	return true;
 }
+
+float DirectionalLight::getMaxT()
+{
+	return Infinity;
+}

@@ -19,39 +19,23 @@ const sf::Vector3f& Render::calculateDirection(int x, int y)
 	return sf::Vector3f(x * 1.f / scale.x, y * 1.f / scale.y, 1.f);
 }
 
-const sf::Color& Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, int min_t, int max_t)
+const sf::Color& Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t)
 {
-	float closest_t = Infinity;
-	Object* closest_object = nullptr;
+	auto closest = this->getClosesetObject(scene, cameraPosition, direction, min_t, max_t);
 
-	auto objects = scene->getSceneObjects();
-
-	for (int i = 0; i < objects->size(); i++) {
-		auto result = objects->at(i)->insertRay(cameraPosition, direction);
-
-		if (result.x < closest_t && min_t < result.x && result.x < max_t) {
-			closest_t = result.x;
-			closest_object = objects->at(i);
-		}
-		if (result.y < closest_t && min_t < result.y && result.y < max_t) {
-			closest_t = result.y;
-			closest_object = objects->at(i);
-		}
-	}
-
-	if (closest_object == nullptr) {
+	if (closest.first == nullptr) {
 		return sf::Color(255, 255, 255, 255);
 	}
 
-	sf::Vector3f point = cameraPosition + (direction * closest_t);
-	sf::Vector3f normal = point - closest_object->getPosition();
+	sf::Vector3f point = cameraPosition + (direction * closest.second);
+	sf::Vector3f normal = point - closest.first->getPosition();
 	normal = (1.0f / Math::LengthVector(normal)) * normal;
 
 	sf::Vector3f view = -1.f * direction;
 
-	auto lighting = this->ComputeLighting(scene, point, normal, view, closest_object->getSpecular());
+	auto lighting = this->ComputeLighting(scene, point, normal, view, closest.first->getSpecular());
 
-	return Math::Multiply(lighting, closest_object->getColor());
+	return Math::Multiply(lighting, closest.first->getColor());
 }
 
 float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& normal, sf::Vector3f& view, float specular)
@@ -73,13 +57,24 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 		}
 
 		auto lightVector = light->getLightVector(point);
+		float max_t = light->getMaxT();
 
+		// Shadow check.
+
+		auto shadow_blocker = this->getClosesetObject(scene, point, lightVector, 0.001, max_t);
+
+		if (shadow_blocker.first != nullptr) {
+			continue;
+		}
+
+		// Diffuse reflection
 		auto n_dot_l = Math::GetDotProduct(normal, lightVector);
 
 		if (n_dot_l > 0) {
 			bright += light->getBright() * n_dot_l / ( length_n * Math::LengthVector(lightVector));
 		}
 
+		// Specular reflection.
 		if (specular != -1) {
 			auto vec_r = ((2.0f * Math::GetDotProduct(normal, lightVector)) * normal) - lightVector;
 			
@@ -92,6 +87,30 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 	}
 
 	return bright;
+}
+
+// first - closest_object
+// second - closest_t
+std::pair<Object*, float>& Render::getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t)
+{
+	auto closest = std::pair<Object*, float>(nullptr, Infinity);
+
+	auto objects = scene->getSceneObjects();
+
+	for (int i = 0; i < objects->size(); i++) {
+		auto result = objects->at(i)->insertRay(cameraPosition, direction);
+
+		if (result.x < closest.second && min_t < result.x && result.x < max_t) {
+			closest.second = result.x;
+			closest.first = objects->at(i);
+		}
+		if (result.y < closest.second && min_t < result.y && result.y < max_t) {
+			closest.second = result.y;
+			closest.first = objects->at(i);
+		}
+	}
+
+	return closest;
 }
 
 void Render::calculate(Scene* scene)
