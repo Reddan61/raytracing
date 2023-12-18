@@ -1,11 +1,11 @@
 #include "Object.h"
 
-const sf::Vector3f& Object::getPosition()
+sf::Vector3f Object::getPosition()
 {
 	return this->position;
 }
 
-const sf::Color& Object::getColor()
+sf::Color Object::getColor()
 {
 	return this->color;
 }
@@ -13,6 +13,11 @@ const sf::Color& Object::getColor()
 float Object::getSpecular()
 {
 	return this->specular;
+}
+
+float Object::getReflective()
+{
+	return this->reflective;
 }
 
 

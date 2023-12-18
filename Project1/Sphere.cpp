@@ -1,11 +1,12 @@
 #include "Sphere.h"
 
-Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius, float specular)
+Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius, float specular, float reflective)
 {
 	this->position = position;
 	this->color = color;
 	this->radius = radius;
 	this->specular = specular;
+	this->reflective = reflective;
 }
 
 void Sphere::update(sf::RenderWindow& window, sf::Time time)
@@ -16,7 +17,7 @@ void Sphere::render(sf::RenderWindow& window)
 {
 }
 
-const sf::Vector2f& Sphere::insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction)
+sf::Vector2f Sphere::insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction)
 {
 	auto oc = cameraPosition - this->getPosition();
 

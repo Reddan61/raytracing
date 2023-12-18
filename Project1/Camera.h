@@ -7,7 +7,7 @@ class Camera
 public:
 	Camera(float x, float y, float z);
 
-	sf::Vector3f& getPosition();
+	sf::Vector3f getPosition();
 
 private:
 	sf::Vector3f position;

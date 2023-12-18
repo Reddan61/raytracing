@@ -14,10 +14,13 @@ public:
 	void update(Scene *scene, sf::RenderWindow& window, sf::Time time);
 private:
 	Viewport *viewport = nullptr;
+	const int reflection_depth = 3;
+
 	void calculate(Scene* scene);
-	const sf::Vector3f & calculateDirection(int x, int y);
-	const sf::Color& traceRay(Scene* scene, sf::Vector3f &cameraPosition, sf::Vector3f &direction, float min_t, float max_t);
+	sf::Vector3f calculateDirection(int x, int y);
+	sf::Color traceRay(Scene* scene, sf::Vector3f &cameraPosition, sf::Vector3f &direction, float min_t, float max_t, int reflection_depth, Object* origin = nullptr);
 	float ComputeLighting(Scene* scene, sf::Vector3f &point, sf::Vector3f &normal, sf::Vector3f &view, float specular);
-	std::pair<Object*, float>& getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t);
+	std::pair<Object*, float> getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, Object* origin = nullptr);
+	sf::Vector3f getReflectRay(const sf::Vector3f & const v1, const sf::Vector3f & const v2);
 };
 

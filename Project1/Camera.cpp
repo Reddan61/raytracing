@@ -4,7 +4,7 @@ Camera::Camera(float x, float y, float z) {
 	this->position = sf::Vector3f(x, y, z);
 }
 
-sf::Vector3f& Camera::getPosition()
+sf::Vector3f Camera::getPosition()
 {
 	return this->position;
 }

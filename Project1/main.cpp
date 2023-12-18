@@ -17,10 +17,10 @@ int main()
 	auto* objects = new std::vector<Object*>();
 	auto* lights = new std::vector<Light*>();
 
-	objects->push_back(new Sphere(sf::Vector3f(0, -1, 3), sf::Color(255,0 ,0, 255), 1, 500));
-	objects->push_back(new Sphere(sf::Vector3f(2, 0, 4), sf::Color(0, 0, 255, 255), 1, 500));
-	objects->push_back(new Sphere(sf::Vector3f(-2, 0, 4), sf::Color(0, 255, 0, 255), 1, 10));
-	objects->push_back(new Sphere(sf::Vector3f(0, -5001, 0), sf::Color(255, 255, 0, 255), 5000, 100));
+	objects->push_back(new Sphere(sf::Vector3f(0, -1, 3), sf::Color(255, 0 ,0, 255), 1, 500, 0.2));
+	objects->push_back(new Sphere(sf::Vector3f(2, 0, 4), sf::Color(0, 0, 255, 255), 1, 500, 0.3));
+	objects->push_back(new Sphere(sf::Vector3f(-2, 0, 4), sf::Color(0, 255, 0, 255), 1, 10, 0.4));
+	objects->push_back(new Sphere(sf::Vector3f(0, -5001, 0), sf::Color(255, 255, 0, 255), 5000, 1000, 0.5));
 
 	lights->push_back(new AmbientLight(0.2f));
 	lights->push_back(new PointLight(sf::Vector3f(2, 1, 0), 0.6f));
