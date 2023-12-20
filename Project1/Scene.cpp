@@ -16,7 +16,8 @@ Scene::~Scene()
 
 void Scene::update(sf::RenderWindow &window, sf::Time time)
 {
-	this->renderObjects(window, time);
+	this->getCamera()->update(window, time);
+	//this->renderObjects(window, time);
 }
 
 std::vector<Object*>* Scene::getSceneObjects()
@@ -29,14 +30,14 @@ std::vector<Light*>* Scene::getSceneLights()
 	return this->SceneLights;
 }
 
-Camera*& Scene::getCamera()
+Camera* Scene::getCamera()
 {
 	return this->camera;
 }
 
-void Scene::renderObjects(sf::RenderWindow &window, sf::Time time)
-{
-	for (Object* object : *this->SceneObjects) {
-		object->update(window, time);
-	}
-}
+//void Scene::renderObjects(sf::RenderWindow &window, sf::Time time)
+//{
+//	for (Object* object : *this->SceneObjects) {
+//		object->update(window, time);
+//	}
+//}
