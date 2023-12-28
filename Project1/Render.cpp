@@ -136,16 +136,25 @@ void Render::calculate(Scene* scene)
 	auto scale = this->viewport->getSize();
 	auto pixels = this->viewport->getPixels();
 	auto cameraPosition = scene->getCamera()->getPosition();
-	auto cameraRotation = scene->getCamera()->getRotation();
+	Matrix4d rotation = scene->getCamera()->getRotation();
 
-	for (int x = -scale.x / 2; x < scale.x / 2; x++) {
-		for (int y = -scale.y / 2; y < scale.y / 2; y++) {
-			auto direction = cameraRotation * this->calculateDirection(x, y);
+	for (int y = 0; y < scale.y; y++) {	
+		for (int x = 0; x < scale.x; x++) {
+			sf::Vector3f direction = this->calculateDirection(x, y);
+
+			direction.x = direction.x * 2.0f - 1.0f;
+			direction.y = 1.0f - 2.0f * direction.y;
+
+			direction = rotation * direction;
+
+			direction = Math::normalize(direction);
 
 			sf::Color color = this->traceRay(scene, cameraPosition, direction, 1, Infinity, this->reflection_depth);
-			this->viewport->updatePixel(scale.x / 2 + x, scale.y / 2 - y - 1, color);
+			
+			this->viewport->updatePixel(x, y, color);
 		}
 	}
+
 }
 
 

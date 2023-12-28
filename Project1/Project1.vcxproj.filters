@@ -54,7 +54,13 @@
     <ClCompile Include="Light\DirectionalLight.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Matrix\Matrix.cpp">
+    <ClCompile Include="Matrix\Matrix3d.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix\Matrix4d.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector\Vector4d.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -108,7 +114,13 @@
     <ClInclude Include="Light\DirectionalLight.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Matrix\Matrix.h">
+    <ClInclude Include="Matrix\Matrix3d.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix\Matrix4d.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector\Vector4d.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

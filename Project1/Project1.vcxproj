@@ -137,13 +137,15 @@
     <ClCompile Include="Light\Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math.cpp" />
-    <ClCompile Include="Matrix\Matrix.cpp" />
+    <ClCompile Include="Matrix\Matrix4d.cpp" />
+    <ClCompile Include="Matrix\Matrix3d.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Pixel.cpp" />
     <ClCompile Include="Light\PointLight.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Vector\Vector4d.cpp" />
     <ClCompile Include="Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,13 +167,15 @@
     <ClInclude Include="Light\DirectionalLight.h" />
     <ClInclude Include="Light\Light.h" />
     <ClInclude Include="Math.h" />
-    <ClInclude Include="Matrix\Matrix.h" />
+    <ClInclude Include="Matrix\Matrix4d.h" />
+    <ClInclude Include="Matrix\Matrix3d.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Pixel.h" />
     <ClInclude Include="Light\PointLight.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Vector\Vector4d.h" />
     <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

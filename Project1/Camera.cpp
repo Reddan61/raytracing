@@ -3,20 +3,19 @@
 Camera::Camera(float x, float y, float z) {
 	this->position = sf::Vector3f(x, y, z);
 
-	this->rotationX = new Matrix();
-	this->rotationY = new Matrix();
-	this->rotationZ = new Matrix();
+	this->rotationX = new Matrix4d();
+	this->rotationY = new Matrix4d();
 
-	this->setRotationX(this->rotationXAngle);
-	this->setRotationY(this->rotationYAngle);
-	this->setRotationZ(this->rotationZAngle);
+	this->front = sf::Vector3f(0, 0, -1.f);
+	this->up = sf::Vector3f(0, -1.f, 0);
+
+	this->calculatedRotations();
 }
 
 Camera::~Camera()
 {
 	delete this->rotationX;
 	delete this->rotationY;
-	delete this->rotationZ;
 }
 
 sf::Vector3f Camera::getPosition()
@@ -29,91 +28,104 @@ void Camera::update(sf::RenderWindow& window, sf::Time time)
 	this->keyCheck(time);
 }
 
-Matrix Camera::getRotation()
+Matrix4d Camera::getRotation()
 {
-	return *this->rotationX * *this->rotationY * *this->rotationZ;
+	return *this->rotationX * *this->rotationY;
 }
 
 void Camera::keyCheck(sf::Time time)
 {
 	auto seconds = time.asSeconds();
+	bool moved = false;
+	bool rotated = false;
+	sf::Vector3f right = Math::normalize(Math::GetCrossProduct(this->front, this->up));
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-		this->position.z += seconds * this->SPEEDMOVE;
+		this->position -= (this->SPEEDMOVE * seconds) * this->front;
+		moved = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-		this->position.z -= seconds * this->SPEEDMOVE;
+		this->position += (this->SPEEDMOVE * seconds) * this->front;
+		moved = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-		this->position.x -= seconds * this->SPEEDMOVE;
+		this->position += right * (this->SPEEDMOVE * seconds);
+		moved = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-		this->position.x += seconds * this->SPEEDMOVE;
+		this->position -= right * (this->SPEEDMOVE * seconds);
+		moved = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-		this->position.y += seconds * this->SPEEDMOVE;
+		this->position -= this->up * (this->SPEEDMOVE * seconds);
+		moved = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-		this->position.y -= seconds * this->SPEEDMOVE;
+		this->position += this->up * (this->SPEEDMOVE * seconds);
+		moved = true;
 	}
+
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-		this->setRotationY(this->rotationYAngle - seconds * this->SPEEDSENS);
+		this->rotationYAngle += this->SPEEDSENS;
+		rotated = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-		this->setRotationY(this->rotationYAngle + seconds * this->SPEEDSENS);
+		this->rotationYAngle -= this->SPEEDSENS;
+		rotated = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-		this->setRotationX(this->rotationXAngle - seconds * this->SPEEDSENS);
+		this->rotationXAngle += this->SPEEDSENS;
+		rotated = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-		this->setRotationX(this->rotationXAngle + seconds * this->SPEEDSENS);
+		this->rotationXAngle -= this->SPEEDSENS;
+		rotated = true;
+	}	
+
+	if (rotated) {
+		this->calculatedRotations();
 	}
+
 }
 
-void Camera::setRotationX(float angle)
+void Camera::setRotationX()
 {
-	this->rotationXAngle = angle;
+	float radians = Math::GetRadians(this->rotationXAngle);
 
 	this->rotationX->setItem(0, 0, 1);
-	this->rotationX->setItem(1, 1, std::cos(this->rotationXAngle));
-	this->rotationX->setItem(1, 2, -std::sin(this->rotationXAngle));
-	this->rotationX->setItem(2, 1, std::sin(this->rotationXAngle));
-	this->rotationX->setItem(2, 2, std::cos(this->rotationXAngle));
+	this->rotationX->setItem(1, 1, std::cosf(radians));
+	this->rotationX->setItem(1, 2, -std::sinf(radians));
+	this->rotationX->setItem(2, 1, std::sinf(radians));
+	this->rotationX->setItem(2, 2, std::cosf(radians));
+	this->rotationX->setItem(3, 3, 1);
 }
 
-void Camera::setRotationY(float angle)
+void Camera::setRotationY()
 {
-	this->rotationYAngle = angle;
+	float radians = Math::GetRadians(this->rotationYAngle);
 
-	this->rotationY->setItem(0, 0, std::cos(this->rotationYAngle));
-	this->rotationY->setItem(0, 2, std::sin(this->rotationYAngle));
+	this->rotationY->setItem(0, 0, std::cosf(radians));
+	this->rotationY->setItem(0, 2, std::sinf(radians));
 	this->rotationY->setItem(1, 1, 1);
-	this->rotationY->setItem(2, 0, -std::sin(this->rotationYAngle));
-	this->rotationY->setItem(2, 2, std::cos(this->rotationYAngle));
+	this->rotationY->setItem(2, 0, -std::sinf(radians));
+	this->rotationY->setItem(2, 2, std::cosf(radians));
+	this->rotationY->setItem(3, 3, 1);
 }
 
-void Camera::setRotationZ(float angle)
+void Camera::calculatedRotations()
 {
-	this->rotationZAngle = angle;
-
-	this->rotationZ->setItem(0, 0, std::cos(this->rotationZAngle));
-	this->rotationZ->setItem(0, 1, -std::sin(this->rotationZAngle));
-	this->rotationZ->setItem(1, 0, std::sin(this->rotationZAngle));
-	this->rotationZ->setItem(1, 1, std::cos(this->rotationZAngle));
-	this->rotationZ->setItem(2, 2, 1);
+	this->setRotationX();
+	this->setRotationY();
+	this->calculateFront();
+	this->calculateUp();
 }
 
-//void Camera::render(sf::RenderWindow& window)
-//{
-//	window.draw(this->object);
-//}
+void Camera::calculateFront()
+{
+	this->front = Math::normalize(this->getRotation() * sf::Vector3f(0, 0, -1.f));
+}
 
-//void Camera::changePosition(float x, float y)
-//{
-//	this->object.setPosition(position);
-//}
-//
-//void Camera::changeAngle(float angle)
-//{
-//	this->angle = angle;
-//}
+void Camera::calculateUp()
+{
+	this->up = Math::normalize(this->getRotation() * sf::Vector3f(0, -1.f, 0));
+}

@@ -1,40 +1,40 @@
-#include "Matrix.h"
+#include "Matrix3d.h"
 
-Matrix::Matrix(float initValue)
+Matrix3d::Matrix3d(float initValue)
 {
-	float** matrix = new float* [3];
-
 	for (short y = 0; y < 3; y++) {
-		matrix[y] = new float[3];
-
 		for (short x = 0; x < 3; x++) {
-			matrix[y][x] = initValue;
+			this->matrix[y][x] = initValue;
 		}
 	}
 
-	this->matrix = matrix;
 }
 
-Matrix::~Matrix()
+Matrix3d::Matrix3d(const Matrix3d& other)
 {
 	for (short y = 0; y < 3; y++) {
-		delete this->matrix[y];
+		for (short x = 0; x < 3; x++) {
+			matrix[y][x] = other.getItem(y, x);
+		}
 	}
-
-	delete this->matrix;
 }
 
-void Matrix::setItem(int y, int x, float value)
+Matrix3d::~Matrix3d()
+{
+
+}
+
+void Matrix3d::setItem(int y, int x, float value)
 {
 	this->matrix[y][x] = value;
 }
 
-float Matrix::getItem(int y, int x) const
+float Matrix3d::getItem(int y, int x) const
 {
 	return this->matrix[y][x];
 }
 
-void Matrix::showItems()
+void Matrix3d::showItems()
 {
 	for (short y = 0; y < 3; y++) {
 		for (short x = 0; x < 3; x++) {
@@ -44,9 +44,9 @@ void Matrix::showItems()
 	}
 }
 
-Matrix Matrix::operator*(const Matrix& other)
+Matrix3d Matrix3d::operator*(const Matrix3d& other)
 {
-	Matrix result;
+	Matrix3d result;
 
 	for (short y = 0; y < 3; y++) {
 		for (short x = 0; x < 3; x++) {
@@ -64,7 +64,7 @@ Matrix Matrix::operator*(const Matrix& other)
 	return result;
 }
 
-sf::Vector3f Matrix::operator*(const sf::Vector3f& other)
+sf::Vector3f Matrix3d::operator*(const sf::Vector3f& other)
 {
 	float test[3] = { other.x, other.y, other.z };
 	float result[3] = { 0, 0, 0 };
