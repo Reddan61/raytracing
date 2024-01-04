@@ -7,6 +7,7 @@ class Pixel
 public:
 	Pixel();
 	Pixel(sf::Uint8 r, sf::Uint8 g, sf::Uint8 b, sf::Uint8 alpha);
+	Pixel(Pixel &other);
 	~Pixel();
 
 	sf::Color* getColor();

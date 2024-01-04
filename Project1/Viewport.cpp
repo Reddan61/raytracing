@@ -11,11 +11,11 @@ Viewport::Viewport(sf::Uint16 w, sf::Uint16 h)
 
 	this->pixels = new Pixel *[this->w];
 
-	for (sf::Uint16 x = 0; x < this->w; x++) {
-		this->pixels[x] = new Pixel[this->h];
-
-		for (sf::Uint16 y = 0; y < this->h; y++) {
-			this->pixels[x][y].setColor(sf::Color(255, 0, 0, 255));
+	for (sf::Uint16 y = 0; y < this->h; y++) {
+		this->pixels[y] = new Pixel[this->h];
+		
+		for (sf::Uint16 x = 0; x < this->w; x++) {
+			this->pixels[y][x].setColor(sf::Color(255, 0, 0, 255));
 			this->image.setPixel(x, y, sf::Color(255, 0, 0, 255));
 		}
 	}
@@ -47,13 +47,13 @@ void Viewport::update(sf::RenderWindow& window)
 
 void Viewport::updatePixel(sf::Uint16 x, sf::Uint16 y,	const sf::Color &color)
 {
-	this->pixels[x][y].setColor(color);
+	this->pixels[y][x].setColor(color);
 	this->image.setPixel(x, y, color);
 }
 
-sf::Vector2f Viewport::getSize()
+sf::Vector2<int> Viewport::getSize()
 {
-	return sf::Vector2f(this->w, this->h);
+	return sf::Vector2<int>(this->w, this->h);
 }
 
 void Viewport::updateTexture()

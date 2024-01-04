@@ -12,7 +12,7 @@ public:
 	void update(sf::RenderWindow& window);
 	void updatePixel(sf::Uint16 x, sf::Uint16 y, const sf::Color &color);
 
-	sf::Vector2f getSize();
+	sf::Vector2<int> getSize();
 private:
 	sf::Uint16 w = 600;
 	sf::Uint16 h = 600;

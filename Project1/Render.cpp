@@ -7,6 +7,11 @@ Render::Render(int width, int height)
 	this->viewport = viewport;
 }
 
+Render::Render(Render& other)
+{
+	std::cout << "copy" << std::endl;
+}
+
 Render::~Render()
 {
 	delete this->viewport;
@@ -41,7 +46,7 @@ sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vecto
 	}
 
 	sf::Vector3f reflected_ray = this->getReflectRay(view, normal);
-	sf::Color reflected_color = this->traceRay(scene, point, reflected_ray, 0.001f, Infinity, reflection_depth - 1, closest.first);
+	sf::Color reflected_color = this->traceRay(scene, point, reflected_ray, 0.5f, Infinity, reflection_depth - 1, closest.first);
 
 	float reflective = closest.first->getReflective();
 	
@@ -109,8 +114,6 @@ std::pair<Object*, float> Render::getClosesetObject(Scene* scene, sf::Vector3f& 
 	for (int i = 0; i < objects->size(); i++) {
 		Object *object = objects->at(i);
 
-		if (origin == object) continue;
-
 		auto result = object->insertRay(cameraPosition, direction);
 
 		if (result.x < closest.second && min_t < result.x && result.x < max_t) {
@@ -131,36 +134,64 @@ sf::Vector3f Render::getReflectRay(const sf::Vector3f& const v1, const sf::Vecto
 	return 2.f * v2 * Math::GetDotProduct(v2, v1) - v1;
 }
 
-void Render::calculate(Scene* scene)
+void Render::perPixel(int x, int y, Scene* scene, Matrix4d& rotation, sf::Vector3f& cameraPosition) {
+	sf::Vector3f direction = this->calculateDirection(x, y);
+
+	direction.x = direction.x * 2.0f - 1.0f;
+	direction.y = 1.0f - 2.0f * direction.y;
+
+	direction = rotation * direction;
+
+	direction = Math::normalize(direction);
+
+	sf::Color color = this->traceRay(scene, cameraPosition, direction, 1, Infinity, this->reflection_depth);
+
+	this->viewport->updatePixel(x, y, color);
+}
+
+void Render::calculate(Scene* scene, ThreadPool& pool)
 {
 	auto scale = this->viewport->getSize();
-	auto pixels = this->viewport->getPixels();
 	auto cameraPosition = scene->getCamera()->getPosition();
 	Matrix4d rotation = scene->getCamera()->getRotation();
 
-	for (int y = 0; y < scale.y; y++) {	
-		for (int x = 0; x < scale.x; x++) {
-			sf::Vector3f direction = this->calculateDirection(x, y);
+	int threads_count = pool.getThreadsCount();
 
-			direction.x = direction.x * 2.0f - 1.0f;
-			direction.y = 1.0f - 2.0f * direction.y;
+	int sizeY = scale.y / threads_count;
 
-			direction = rotation * direction;
+	for (int i = 0; i < threads_count; i++) {
+		pool.addTask([i, sizeY, &scale, scene, &rotation, &cameraPosition, this]() {
+			int height = sizeY * (i + 1);
 
-			direction = Math::normalize(direction);
-
-			sf::Color color = this->traceRay(scene, cameraPosition, direction, 1, Infinity, this->reflection_depth);
-			
-			this->viewport->updatePixel(x, y, color);
-		}
+			for (int y = sizeY * i; y < height; y++) {
+				for (int x = 0; x < scale.x; x++) {
+					this->perPixel(x, y, scene, rotation, cameraPosition);
+				}
+			}
+		});
 	}
 
+	int totalColoredPixels = sizeY * threads_count;
+
+	if (totalColoredPixels != scale.y) {
+		pool.addTask([totalColoredPixels, &scale, scene, &rotation, &cameraPosition, this]() {
+			for (int y = totalColoredPixels; y < scale.y; y++) {
+				for (int x = 0; x < scale.x; x++) {
+					this->perPixel(x, y, scene, rotation, cameraPosition);
+				}
+			}
+		});
+	}
+
+	pool.wait();
 }
 
 
-void Render::update(Scene* scene, sf::RenderWindow& window, sf::Time time)
+void Render::update(Scene* scene, sf::RenderWindow& window, sf::Time& time, ThreadPool& pool)
 {
 	scene->update(window, time);
-	this->calculate(scene);
+	this->calculate(scene, pool);
 	this->viewport->update(window);
 }
+
+

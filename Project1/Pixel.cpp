@@ -10,8 +10,17 @@ Pixel::Pixel(sf::Uint8 r, sf::Uint8 g, sf::Uint8 b, sf::Uint8 alpha)
 	this->color = new sf::Color(r, g, b, alpha);
 }
 
+Pixel::Pixel(Pixel& other)
+{
+	sf::Color *color = other.getColor();
+
+	this->color = new sf::Color(color->r, color->g, color->b, color->a);
+}
+
 Pixel::~Pixel()
 {
+	if (this->color == nullptr) return;
+
 	delete this->color;
 	this->color = nullptr;
 }

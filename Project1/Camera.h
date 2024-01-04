@@ -21,7 +21,7 @@ private:
 
 	//sf::CircleShape object;
 	const float SPEEDMOVE = 0.2;
-	const float SPEEDSENS = 5;
+	const float SPEEDSENS = 10;
 	float rotationXAngle = 0;
 	float rotationYAngle = 0;
 
@@ -30,8 +30,8 @@ private:
 
 	void keyCheck(sf::Time time);
 
-	void setRotationX();
-	void setRotationY();
+	void setRotationX(float angle);
+	void setRotationY(float angle);
 
 	void calculatedRotations();
 	void calculateFront();

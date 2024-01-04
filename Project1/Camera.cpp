@@ -9,6 +9,8 @@ Camera::Camera(float x, float y, float z) {
 	this->front = sf::Vector3f(0, 0, -1.f);
 	this->up = sf::Vector3f(0, -1.f, 0);
 
+	this->setRotationX(0);
+	this->setRotationY(0);
 	this->calculatedRotations();
 }
 
@@ -30,7 +32,7 @@ void Camera::update(sf::RenderWindow& window, sf::Time time)
 
 Matrix4d Camera::getRotation()
 {
-	return *this->rotationX * *this->rotationY;
+	return *this->rotationY * *this->rotationX;
 }
 
 void Camera::keyCheck(sf::Time time)
@@ -66,19 +68,19 @@ void Camera::keyCheck(sf::Time time)
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-		this->rotationYAngle += this->SPEEDSENS;
+		this->setRotationX(this->rotationXAngle + this->SPEEDSENS);
 		rotated = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-		this->rotationYAngle -= this->SPEEDSENS;
+		this->setRotationX(this->rotationXAngle - this->SPEEDSENS);
 		rotated = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-		this->rotationXAngle += this->SPEEDSENS;
+		this->setRotationY(this->rotationYAngle + this->SPEEDSENS);
 		rotated = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-		this->rotationXAngle -= this->SPEEDSENS;
+		this->setRotationY(this->rotationYAngle - this->SPEEDSENS);
 		rotated = true;
 	}	
 
@@ -88,34 +90,44 @@ void Camera::keyCheck(sf::Time time)
 
 }
 
-void Camera::setRotationX()
+void Camera::setRotationX(float angle)
 {
+	this->rotationXAngle = angle;
 	float radians = Math::GetRadians(this->rotationXAngle);
 
-	this->rotationX->setItem(0, 0, 1);
-	this->rotationX->setItem(1, 1, std::cosf(radians));
-	this->rotationX->setItem(1, 2, -std::sinf(radians));
-	this->rotationX->setItem(2, 1, std::sinf(radians));
+	this->rotationX->setItem(0, 0, std::cosf(radians));
+	this->rotationX->setItem(0, 2, std::sinf(radians));
+	this->rotationX->setItem(1, 1, 1);
+	this->rotationX->setItem(2, 0, -std::sinf(radians));
 	this->rotationX->setItem(2, 2, std::cosf(radians));
 	this->rotationX->setItem(3, 3, 1);
 }
 
-void Camera::setRotationY()
+void Camera::setRotationY(float angle)
 {
+	int result = angle;
+
+	if (result > 89) {
+		result = 89;
+	}
+	else if (result < -89) {
+		result = -89;
+	}
+
+	this->rotationYAngle = result;
+
 	float radians = Math::GetRadians(this->rotationYAngle);
 
-	this->rotationY->setItem(0, 0, std::cosf(radians));
-	this->rotationY->setItem(0, 2, std::sinf(radians));
-	this->rotationY->setItem(1, 1, 1);
-	this->rotationY->setItem(2, 0, -std::sinf(radians));
+	this->rotationY->setItem(0, 0, 1);
+	this->rotationY->setItem(1, 1, std::cosf(radians));
+	this->rotationY->setItem(1, 2, -std::sinf(radians));
+	this->rotationY->setItem(2, 1, std::sinf(radians));
 	this->rotationY->setItem(2, 2, std::cosf(radians));
 	this->rotationY->setItem(3, 3, 1);
 }
 
 void Camera::calculatedRotations()
 {
-	this->setRotationX();
-	this->setRotationY();
 	this->calculateFront();
 	this->calculateUp();
 }

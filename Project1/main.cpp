@@ -9,10 +9,13 @@
 #include "Light/AmbientLight.h"
 #include "Light/DirectionalLight.h"
 #include "Light/PointLight.h"
+#include "ThreadPool/ThreadPool.h"
 
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(600, 600), "SFML works!");
+
+	ThreadPool pool(12);
 
 	auto* objects = new std::vector<Object*>();
 	auto* lights = new std::vector<Light*>();
@@ -28,7 +31,7 @@ int main()
 	lights->push_back(new DirectionalLight(sf::Vector3f(1, 4, 4), 0.2f));
 
 	Scene* scene = new Scene(objects, lights, new Camera(0, 0, 0));
-
+	
 	sf::Clock clock;
 	Render *render = new Render(600, 600);
 
@@ -44,7 +47,7 @@ int main()
 
 		window.clear();
 
-		render->update(scene, window, time);
+		render->update(scene, window, time, pool);
 
 		window.display();
 		
