@@ -8,20 +8,20 @@ public:
 	Viewport(sf::Uint16 w, sf::Uint16 h);
 	~Viewport();
 
-	Pixel** getPixels();
+	//Pixel*** getPixels();
 	void update(sf::RenderWindow& window);
 	void updatePixel(sf::Uint16 x, sf::Uint16 y, const sf::Color &color);
 
 	sf::Vector2<int> getSize();
 private:
-	sf::Uint16 w = 600;
-	sf::Uint16 h = 600;
+	sf::Uint16 w;
+	sf::Uint16 h;
 
 	sf::Image image;
 	sf::Texture texture;
 	sf::Sprite sprite;
 
-	Pixel **pixels;
+	Pixel ***pixels = nullptr;
 
 	void updateTexture();
 };

@@ -17,19 +17,19 @@ Render::~Render()
 	delete this->viewport;
 }
 
-sf::Vector3f Render::calculateDirection(int x, int y)
+sf::Vector3f Render::calculateDirection(float x, float y)
 {
 	auto scale = this->viewport->getSize();
 
-	return sf::Vector3f(x * 1.f / scale.x, y * 1.f / scale.y, 1.0f);
+	return sf::Vector3f(x * 1.f / scale.x, y * 1.f / scale.y, 1.f);
 }
 
-sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, int reflection_depth, Object* origin)
+sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, int reflection_depth)
 {
-	auto closest = this->getClosesetObject(scene, cameraPosition, direction, min_t, max_t, origin);
+	auto closest = this->getClosesetObject(scene, cameraPosition, direction, min_t, max_t);
 
 	if (closest.first == nullptr) {
-		return sf::Color(0, 0, 0, 255);
+		return scene->getSky()->getColor(direction);
 	}
 
 	sf::Vector3f point = cameraPosition + (direction * closest.second);
@@ -46,7 +46,7 @@ sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vecto
 	}
 
 	sf::Vector3f reflected_ray = this->getReflectRay(view, normal);
-	sf::Color reflected_color = this->traceRay(scene, point, reflected_ray, 0.5f, Infinity, reflection_depth - 1, closest.first);
+	sf::Color reflected_color = this->traceRay(scene, point, reflected_ray, 0.5f, Infinity, reflection_depth - 1);
 
 	float reflective = closest.first->getReflective();
 	
@@ -104,8 +104,7 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 
 // first - closest_object
 // second - closest_t
-// origin - чтобы отражение не падало на свой же обьект
-std::pair<Object*, float> Render::getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, Object* origin)
+std::pair<Object*, float> Render::getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t)
 {
 	auto closest = std::pair<Object*, float>(nullptr, Infinity);
 
@@ -134,7 +133,7 @@ sf::Vector3f Render::getReflectRay(const sf::Vector3f& const v1, const sf::Vecto
 	return 2.f * v2 * Math::GetDotProduct(v2, v1) - v1;
 }
 
-void Render::perPixel(int x, int y, Scene* scene, Matrix4d& rotation, sf::Vector3f& cameraPosition) {
+sf::Color Render::getPixelColor(float x, float y, Scene* scene, Matrix4d& rotation, sf::Vector3f& cameraPosition) {
 	sf::Vector3f direction = this->calculateDirection(x, y);
 
 	direction.x = direction.x * 2.0f - 1.0f;
@@ -146,7 +145,40 @@ void Render::perPixel(int x, int y, Scene* scene, Matrix4d& rotation, sf::Vector
 
 	sf::Color color = this->traceRay(scene, cameraPosition, direction, 1, Infinity, this->reflection_depth);
 
-	this->viewport->updatePixel(x, y, color);
+	return color;
+}
+
+void Render::perPixel(float x, float y, Scene* scene, Matrix4d& rotation, sf::Vector3f& cameraPosition)
+{
+	// anti-aliasing
+	float aa = 16.f;
+	float half_aa = aa / 2;
+	float partial_aa = 1.f / half_aa;
+
+	sf::Vector3f color;
+
+	float pixel_start_x = x - 0.5f;
+	float pixel_start_y = y - 0.5f;
+
+	for (int i = 0; i < half_aa; i++) {
+		float u = pixel_start_x + (partial_aa * i);
+		float v = pixel_start_y + (partial_aa * i);
+
+		color = Math::Add(color, this->getPixelColor(u, v, scene, rotation, cameraPosition));
+	}
+
+	pixel_start_x = x + 0.5f;
+
+	for (int i = 0; i < half_aa; i++) {
+		float u = pixel_start_x - (partial_aa * i);
+		float v = pixel_start_y + (partial_aa * i);
+
+		color = Math::Add(color, this->getPixelColor(u, v, scene, rotation, cameraPosition));
+	}
+
+	sf::Vector3f result_ns = color / aa;
+
+	this->viewport->updatePixel(x, y, sf::Color(result_ns.x, result_ns.y, result_ns.z, 255));
 }
 
 void Render::calculate(Scene* scene, ThreadPool& pool)

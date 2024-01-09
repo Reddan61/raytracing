@@ -148,6 +148,7 @@
     <ClCompile Include="Light\PointLight.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Sky\Sky.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="ThreadPool\Thread.cpp" />
     <ClCompile Include="ThreadPool\ThreadPool.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="Light\PointLight.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="Sky\Sky.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="ThreadPool\Thread.h" />
     <ClInclude Include="ThreadPool\ThreadPool.h" />

@@ -14,22 +14,27 @@ float Math::GetRadians(float degree)
 	return degree * (3.14 / 180);
 }
 
-sf::Color Math::Multiply(float number, const sf::Color& const color)
+sf::Color Math::Multiply(float number, const sf::Color const &color)
 {
-	int r = color.r * number >= 255 ? 255 : color.r * number;
-	int g = color.g * number >= 255 ? 255 : color.g * number;
-	int b = color.b * number >= 255 ? 255 : color.b * number;
+	float r = color.r * number >= 255 ? 255 : color.r * number;
+	float g = color.g * number >= 255 ? 255 : color.g * number;
+	float b = color.b * number >= 255 ? 255 : color.b * number;
 
 	return sf::Color(r, g, b, 255);
 }
 
-sf::Color Math::Add(const sf::Color& const c1, const sf::Color& const c2)
+sf::Color Math::Add(const sf::Color const &c1, const sf::Color const &c2)
 {
 	int r = c1.r + c2.r >= 255 ? 255 : c1.r + c2.r;
 	int g = c1.g + c2.g >= 255 ? 255 : c1.g + c2.g;
 	int b = c1.b + c2.b >= 255 ? 255 : c1.b + c2.b;
 
 	return sf::Color(r, g, b, 255);
+}
+
+sf::Vector3f Math::Add(const sf::Vector3f const& c1, const sf::Color const& c2)
+{
+	return sf::Vector3f(c1.x + c2.r, c1.y + c2.g, c1.z + c2.b);
 }
 
 sf::Vector3f Math::GetCrossProduct(const sf::Vector3f const& v1, const sf::Vector3f const& v2)
@@ -66,14 +71,9 @@ Matrix4d Math::GetLookAt(const sf::Vector3f const& from, const sf::Vector3f cons
 	rotation.setItem(2, 0, forward.x);
 	rotation.setItem(2, 1, forward.y);
 	rotation.setItem(2, 2, forward.z);
-	
-	//rotation.setItem(3, 0, from.x);
-	//rotation.setItem(3, 1, from.y);
-	//rotation.setItem(3, 2, from.z);
 
 	rotation.setItem(3, 3, 1);
 	
-	//rotation.showItems();
 	Matrix4d translation;
 	
 	translation.setItem(0, 0, 1);
@@ -84,15 +84,18 @@ Matrix4d Math::GetLookAt(const sf::Vector3f const& from, const sf::Vector3f cons
 	translation.setItem(0, 3, -from.x);
 	translation.setItem(1, 3, -from.y);
 	translation.setItem(2, 3, -from.z);
-	//translation.setItem(3, 0, position.x);
-	//translation.setItem(3, 1, position.y);
-	//translation.setItem(3, 2, position.z);
-	//rotation.showItems();
-	//translation.showItems();
-
-	//Matrix4d lookat = rotation * translation;
 
 	return rotation * translation;
+}
+
+double Math::GetRandom()
+{
+	return rand() / (RAND_MAX + 1.0);
+}
+
+double Math::GetRandomRange(double min, double max)
+{
+	return min + (max - min) * Math::GetRandom();
 }
 
 sf::Vector3f Math::normalize(const sf::Vector3f const& vec)

@@ -13,7 +13,10 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(600, 600), "SFML works!");
+	int width = 1200;
+	int height = 800;
+
+	sf::RenderWindow window(sf::VideoMode(width, height), "SFML works!");
 
 	ThreadPool pool(12);
 
@@ -26,14 +29,15 @@ int main()
 	objects->push_back(new Sphere(sf::Vector3f(-2, 0, 4), sf::Color(0, 255, 0, 255), 1, 10, 0.4));
 	objects->push_back(new Sphere(sf::Vector3f(0, -5001, 0), sf::Color(255, 255, 0, 255), 5000, 1000, 0.5));
 
-	lights->push_back(new AmbientLight(0.2f));
-	lights->push_back(new PointLight(sf::Vector3f(2, 1, 0), 0.6f));
-	lights->push_back(new DirectionalLight(sf::Vector3f(1, 4, 4), 0.2f));
+	//lights->push_back(new AmbientLight(0.2f));
+	//lights->push_back(new PointLight(sf::Vector3f(2, 1, 0), 0.6f));
+	lights->push_back(new PointLight(sf::Vector3f(2, 1, 0), 1));
+	//lights->push_back(new DirectionalLight(sf::Vector3f(1, 4, 4), 0.2f));
 
 	Scene* scene = new Scene(objects, lights, new Camera(0, 0, 0));
 	
 	sf::Clock clock;
-	Render *render = new Render(600, 600);
+	Render *render = new Render(width, height);
 
 	while (window.isOpen())
 	{

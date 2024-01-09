@@ -1,21 +1,22 @@
 #include "Viewport.h"
 
 
-Viewport::Viewport(sf::Uint16 w, sf::Uint16 h)
+Viewport::Viewport(sf::Uint16 w_, sf::Uint16 h_)
 {
-	this->w = w;
-	this->h = h;
+	this->w = w_;
+	this->h = h_;
 
 	this->image.create(this->w, this->h, sf::Color(0, 0, 0, 0));
 	this->texture.create(this->w, this->h);
 
-	this->pixels = new Pixel *[this->w];
+	this->pixels = new Pixel **[this->h];
 
 	for (sf::Uint16 y = 0; y < this->h; y++) {
-		this->pixels[y] = new Pixel[this->h];
+		this->pixels[y] = new Pixel*[this->w];
 		
 		for (sf::Uint16 x = 0; x < this->w; x++) {
-			this->pixels[y][x].setColor(sf::Color(255, 0, 0, 255));
+			Pixel* pixel = new Pixel(255, 0, 0, 255);
+			this->pixels[y][x] = pixel;
 			this->image.setPixel(x, y, sf::Color(255, 0, 0, 255));
 		}
 	}
@@ -26,17 +27,23 @@ Viewport::Viewport(sf::Uint16 w, sf::Uint16 h)
 
 Viewport::~Viewport()
 {
-	for (sf::Uint16 x = 0; x < this->w; x++) {
-		delete[] this->pixels[x];
+	if (this->pixels == nullptr) return;
+
+	for (sf::Uint16 y = 0; y < this->h; y++) {
+		for (sf::Uint16 x = 0; x < this->w; x++) {
+			delete this->pixels[y][x];
+		}
+
+		delete[] this->pixels[y];
 	}
 
 	delete[] this->pixels;
 }
 
-Pixel** Viewport::getPixels()
-{
-	return this->pixels;
-}
+//Pixel*** Viewport::getPixels()
+//{
+//	return this->pixels;
+//}
 
 void Viewport::update(sf::RenderWindow& window)
 {
@@ -47,7 +54,7 @@ void Viewport::update(sf::RenderWindow& window)
 
 void Viewport::updatePixel(sf::Uint16 x, sf::Uint16 y,	const sf::Color &color)
 {
-	this->pixels[y][x].setColor(color);
+	//this->pixels[y][x]->setColor(color);
 	this->image.setPixel(x, y, color);
 }
 
