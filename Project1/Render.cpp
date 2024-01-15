@@ -24,36 +24,35 @@ sf::Vector3f Render::calculateDirection(float x, float y)
 	return sf::Vector3f(x * 1.f / scale.x, y * 1.f / scale.y, 1.f);
 }
 
-sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, int reflection_depth)
+sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, int reflection_depth, const Object const* origin)
 {
-	auto closest = this->getClosesetObject(scene, cameraPosition, direction, min_t, max_t);
+	Object::InsertRayValue intersection = this->getClosesetObject(scene, cameraPosition, direction, min_t, max_t, origin);
 
-	if (closest.first == nullptr) {
+	if (intersection.object == nullptr) {
 		return scene->getSky()->getColor(direction);
 	}
 
-	sf::Vector3f point = cameraPosition + (direction * closest.second);
-	sf::Vector3f normal = point - closest.first->getPosition();
-	normal = normal / Math::LengthVector(normal);
+	sf::Vector3f point = cameraPosition + (direction * intersection.t1);
 
+	sf::Vector3f normal = intersection.object->getNormal(point, direction);
 	sf::Vector3f view = -1.f * direction;
 
-	float lighting = this->ComputeLighting(scene, point, normal, view, closest.first->getSpecular());
-	sf::Color local_color = Math::Multiply(lighting, closest.first->getColor());
+	float lighting = this->ComputeLighting(scene, point, normal, view, intersection.object->getSpecular(), intersection.object);
+	sf::Color local_color = Math::Multiply(lighting, intersection.object->getColor());
 
-	if (closest.first->getReflective() <= 0 || reflection_depth <= 0) {
+	if (intersection.object->getReflective() <= 0 || reflection_depth <= 0) {
 		return local_color;
 	}
 
 	sf::Vector3f reflected_ray = this->getReflectRay(view, normal);
-	sf::Color reflected_color = this->traceRay(scene, point, reflected_ray, 0.5f, Infinity, reflection_depth - 1);
+	sf::Color reflected_color = this->traceRay(scene, point, reflected_ray, Epsilon, Infinity, reflection_depth - 1, intersection.object);
 
-	float reflective = closest.first->getReflective();
+	float reflective = intersection.object->getReflective();
 	
 	return Math::Add(Math::Multiply(1.f - reflective, local_color), Math::Multiply(reflective, reflected_color));
 }
 
-float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& normal, sf::Vector3f& view, float specular)
+float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& normal, sf::Vector3f& view, float specular, const Object const* origin)
 {
 	float bright = 0;
 	float length_n = Math::LengthVector(normal);
@@ -75,9 +74,9 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 		float max_t = light->getMaxT();
 
 		// Shadow check.
-		auto shadow_blocker = this->getClosesetObject(scene, point, lightVector, 0.001f, max_t);
+		Object::InsertRayValue shadow_blocker = this->getClosesetObject(scene, point, lightVector, Epsilon, max_t, origin);
 
-		if (shadow_blocker.first != nullptr) {
+		if (shadow_blocker.object != nullptr) {
 			continue;
 		}
 
@@ -102,30 +101,30 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 	return bright;
 }
 
-// first - closest_object
-// second - closest_t
-std::pair<Object*, float> Render::getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t)
+Object::InsertRayValue Render::getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, const Object const* origin)
 {
-	auto closest = std::pair<Object*, float>(nullptr, Infinity);
+	Object::InsertRayValue intersection(Infinity, Infinity, nullptr);
 
 	auto objects = scene->getSceneObjects();
 
 	for (int i = 0; i < objects->size(); i++) {
 		Object *object = objects->at(i);
 
-		auto result = object->insertRay(cameraPosition, direction);
+		if (origin == object) continue;
 
-		if (result.x < closest.second && min_t < result.x && result.x < max_t) {
-			closest.second = result.x;
-			closest.first = objects->at(i);
+		Object::InsertRayValue result = object->insertRay(cameraPosition, direction);
+
+		if (result.t1 < intersection.t1 && min_t < result.t1 && result.t1 < max_t) {
+			intersection = result;
+			intersection.t2 = result.t1;
 		}
-		if (result.y < closest.second && min_t < result.y && result.y < max_t) {
-			closest.second = result.y;
-			closest.first = objects->at(i);
+		if (result.t2 < intersection.t2 && min_t < result.t2 && result.t2 < max_t) {
+			intersection = result;
+			intersection.t1 = result.t2;
 		}
 	}
 
-	return closest;
+	return intersection;
 }
 
 sf::Vector3f Render::getReflectRay(const sf::Vector3f& const v1, const sf::Vector3f& const v2)
@@ -151,7 +150,7 @@ sf::Color Render::getPixelColor(float x, float y, Scene* scene, Matrix4d& rotati
 void Render::perPixel(float x, float y, Scene* scene, Matrix4d& rotation, sf::Vector3f& cameraPosition)
 {
 	// anti-aliasing
-	float aa = 16.f;
+	float aa = 4.f;
 	float half_aa = aa / 2;
 	float partial_aa = 1.f / half_aa;
 

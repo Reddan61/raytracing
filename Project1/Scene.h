@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Object.h"
+#include "./Objects/Object.h"
 #include "Camera.h"
 #include "Light/Light.h"
 #include "Light/AmbientLight.h"

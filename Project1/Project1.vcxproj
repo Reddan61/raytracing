@@ -143,15 +143,18 @@
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="Matrix\Matrix4d.cpp" />
     <ClCompile Include="Matrix\Matrix3d.cpp" />
-    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Objects\Object.cpp" />
     <ClCompile Include="Pixel.cpp" />
     <ClCompile Include="Light\PointLight.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sky\Sky.cpp" />
-    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Objects\Sphere\Sphere.cpp" />
     <ClCompile Include="ThreadPool\Thread.cpp" />
     <ClCompile Include="ThreadPool\ThreadPool.cpp" />
+    <ClCompile Include="Objects\Triangle\Triangle.cpp" />
+    <ClCompile Include="Objects\TriangleMesh\TriangleMesh.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="Vector\Vector4d.cpp" />
     <ClCompile Include="Viewport.cpp" />
   </ItemGroup>
@@ -176,15 +179,18 @@
     <ClInclude Include="Math.h" />
     <ClInclude Include="Matrix\Matrix4d.h" />
     <ClInclude Include="Matrix\Matrix3d.h" />
-    <ClInclude Include="Object.h" />
+    <ClInclude Include="Objects\Object.h" />
     <ClInclude Include="Pixel.h" />
     <ClInclude Include="Light\PointLight.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sky\Sky.h" />
-    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Objects\Sphere\Sphere.h" />
     <ClInclude Include="ThreadPool\Thread.h" />
     <ClInclude Include="ThreadPool\ThreadPool.h" />
+    <ClInclude Include="Objects\Triangle\Triangle.h" />
+    <ClInclude Include="Objects\TriangleMesh\TriangleMesh.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="Vector\Vector4d.h" />
     <ClInclude Include="Viewport.h" />
   </ItemGroup>

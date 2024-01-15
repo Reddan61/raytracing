@@ -1,17 +1,17 @@
 #include "Math.h";
 
-float Math::GetDotProduct(const sf::Vector3f& const v1, const sf::Vector3f& v2) {
+float Math::GetDotProduct(const sf::Vector3f const &v1, const sf::Vector3f const& v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-float Math::LengthVector(sf::Vector3f& vec)
+float Math::LengthVector(const sf::Vector3f const &vec)
 {
 	return std::sqrt(Math::GetDotProduct(vec, vec));
 }
 
 float Math::GetRadians(float degree)
 {
-	return degree * (3.14 / 180);
+	return degree * (3.14f / 180.f);
 }
 
 sf::Color Math::Multiply(float number, const sf::Color const &color)
@@ -42,7 +42,7 @@ sf::Vector3f Math::GetCrossProduct(const sf::Vector3f const& v1, const sf::Vecto
 	sf::Vector3f result;
 
 	result.x = v1.y * v2.z - v1.z * v2.y;
-	result.y = v1.x * v2.z - v1.z * v2.x;
+	result.y = v1.z * v2.x - v1.x * v2.z;
 	result.z = v1.x * v2.y - v1.y * v2.x;
 
 	return result;

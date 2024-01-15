@@ -6,10 +6,11 @@
 #include "./Matrix/Matrix4d.h"
 
 #define Infinity std::numeric_limits<int>::max()
+#define Epsilon std::numeric_limits<float>::epsilon()
 
 namespace Math {
-	float GetDotProduct(const sf::Vector3f& const v1, const sf::Vector3f& v2);
-	float LengthVector(sf::Vector3f& vec);
+	float GetDotProduct(const sf::Vector3f const& v1, const sf::Vector3f const& v2);
+	float LengthVector(const sf::Vector3f const& vec);
 	float GetRadians(float degree);
 
 	sf::Color Multiply(float number, const sf::Color const& color);

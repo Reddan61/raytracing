@@ -2,14 +2,16 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "Scene.h"
-#include "Object.h"
 #include "Camera.h"
 #include "Render.h"
-#include "Sphere.h"
+#include "./Objects/Sphere/Sphere.h"
+#include "./Objects/Object.h"
+#include "./Objects/Triangle/Triangle.h"
 #include "Light/AmbientLight.h"
 #include "Light/DirectionalLight.h"
 #include "Light/PointLight.h"
 #include "ThreadPool/ThreadPool.h"
+#include "Utils.h"
 
 int main()
 {
@@ -23,15 +25,31 @@ int main()
 	auto* objects = new std::vector<Object*>();
 	auto* lights = new std::vector<Light*>();
 
-	objects->push_back(new Sphere(sf::Vector3f(0, 1, 3), sf::Color(255, 0 ,0, 255), 1, 500, 0.2));
-	objects->push_back(new Sphere(sf::Vector3f(0, 1, -3), sf::Color(0, 255 ,0, 255)));
-	objects->push_back(new Sphere(sf::Vector3f(2, 0, 4), sf::Color(0, 0, 255, 255), 1, 500, 0.3));
-	objects->push_back(new Sphere(sf::Vector3f(-2, 0, 4), sf::Color(0, 255, 0, 255), 1, 10, 0.4));
-	objects->push_back(new Sphere(sf::Vector3f(0, -5001, 0), sf::Color(255, 255, 0, 255), 5000, 1000, 0.5));
+	TriangleMesh* cube = Utils::LoadCustomFormatFile("cube.txt");
+	cube->changePosition(sf::Vector3f(2, 1, 0));
 
-	//lights->push_back(new AmbientLight(0.2f));
+	objects->push_back(new Triangle(sf::Vector3f(0, 0, -3), sf::Vector3f(1, 1, -3), sf::Vector3f(2, 0, -3), sf::Color(0, 0, 255, 255)));
+	objects->push_back(new Triangle(sf::Vector3f(1, 0, 1), sf::Vector3f(2, 1, 1), sf::Vector3f(3, 0, 1), sf::Color(0, 0, 255, 255)));
+	objects->push_back(new Triangle(sf::Vector3f(1, 0, -1), sf::Vector3f(2, 1, -1), sf::Vector3f(3, 0, -1), sf::Color(0, 0, 255, 255)));
+	
+	objects->push_back(cube);
+	//objects->push_back(new Sphere(sf::Vector3f(0, 1, 3), sf::Color(255, 0 ,0, 255), 1, 500, 0.2));
+	objects->push_back(new Sphere(sf::Vector3f(-1, 1, 0), sf::Color(0, 255 ,0, 255)));
+	objects->push_back(new Sphere(sf::Vector3f(2, 4, 0), sf::Color(0, 255 ,0, 255)));
+	objects->push_back(new Sphere(sf::Vector3f(2, 0, -3), sf::Color(0, 255 ,0, 255)));
+	//objects->push_back(new Sphere(sf::Vector3f(2, 0, 4), sf::Color(0, 0, 255, 255), 1, 500, 0.3));
+	//objects->push_back(new Sphere(sf::Vector3f(-2, 0, -2), sf::Color(0, 255, 0, 255), 1, 10, 0.4));
+	objects->push_back(new Sphere(
+		sf::Vector3f(0, -5001, 0), 
+		sf::Color(255, 255, 0, 255), 
+		5000, 
+		1000, 
+		0.5
+	));
+
+	lights->push_back(new AmbientLight(0.2f));
 	//lights->push_back(new PointLight(sf::Vector3f(2, 1, 0), 0.6f));
-	lights->push_back(new PointLight(sf::Vector3f(2, 1, 0), 1));
+	lights->push_back(new PointLight(sf::Vector3f(3, 4, -3), 0.8f));
 	//lights->push_back(new DirectionalLight(sf::Vector3f(1, 4, 4), 0.2f));
 
 	Scene* scene = new Scene(objects, lights, new Camera(0, 0, 0));
