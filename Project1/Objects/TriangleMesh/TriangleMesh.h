@@ -9,18 +9,18 @@ public:
 		uint32_t numFaces, 
 		const std::unique_ptr<uint32_t[]> const &faceIndex,
 		const std::unique_ptr<uint32_t[]> const &vertsIndex,
-		const std::unique_ptr<sf::Vector3f[]> const &verts,
-		const std::unique_ptr<sf::Vector3f[]> const &normals,
+		const std::unique_ptr<Vector3d[]> const &verts,
+		const std::unique_ptr<Vector3d[]> const &normals,
 		const std::unique_ptr<sf::Vector2f[]> const &st
 	);
 	~TriangleMesh();
 
-	sf::Vector3f getNormal(const sf::Vector3f const& point, const sf::Vector3f const& direction) override;
+	Vector3d getNormal(const Vector3d const& point, const Vector3d const& direction) override;
 
 	void update(sf::RenderWindow& window, sf::Time time) override;
-	Object::InsertRayValue insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction) override;
+	Object::InsertRayValue insertRay(Vector3d& cameraPosition, Vector3d& direction) override;
 
-	void changePosition(const sf::Vector3f const& position) override;
+	void changePosition(const Vector3d const& position) override;
 private:
 	std::vector<Triangle*> *polygons = nullptr;
 

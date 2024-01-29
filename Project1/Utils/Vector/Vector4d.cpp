@@ -16,7 +16,7 @@ Vector4d::Vector4d(float x, float y, float z, float w)
 	this->w = w;
 }
 
-Vector4d::Vector4d(const sf::Vector3f const &vec, float w)
+Vector4d::Vector4d(const Vector3d const &vec, float w)
 {
 	this->x = vec.x;
 	this->y = vec.y;

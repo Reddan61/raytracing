@@ -5,17 +5,16 @@
 class Viewport
 {
 public:
-	Viewport(sf::Uint16 w, sf::Uint16 h);
+	Viewport(unsigned int w, unsigned int h);
 	~Viewport();
 
-	//Pixel*** getPixels();
+	Pixel*** getPixels();
 	void update(sf::RenderWindow& window);
-	void updatePixel(sf::Uint16 x, sf::Uint16 y, const sf::Color &color);
+	void updatePixel(unsigned int x, unsigned int y, const Color &color);
 
 	sf::Vector2<int> getSize();
 private:
-	sf::Uint16 w;
-	sf::Uint16 h;
+	unsigned int w, h;
 
 	sf::Image image;
 	sf::Texture texture;

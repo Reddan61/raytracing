@@ -1,6 +1,6 @@
 #include "Object.h"
 
-sf::Color Object::getColor()
+Color Object::getColor()
 {
 	return this->color;
 }
@@ -14,5 +14,4 @@ float Object::getReflective()
 {
 	return this->reflective;
 }
-
 

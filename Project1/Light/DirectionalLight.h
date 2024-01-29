@@ -5,9 +5,9 @@
 class DirectionalLight : public Light
 {
 public:
-	DirectionalLight(const sf::Vector3f& const position, float bright);
+	DirectionalLight(const Vector3d& const position, float bright);
 
-	sf::Vector3f getLightVector(sf::Vector3f& point) override;
+	Vector3d getLightVector(Vector3d& point) override;
 	bool hasPosition() override;
 	float getMaxT() override;
 };

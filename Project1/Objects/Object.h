@@ -1,5 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "../Utils/Color/Color.h"
+#include "../Utils/Vector/Vector3d.h"
 
 class Object
 {
@@ -21,16 +23,16 @@ public:
 		Object* object = nullptr;
 	};
 
-	sf::Color getColor();
+	Color getColor();
 	float getSpecular();
 	float getReflective();
 
-	virtual sf::Vector3f getNormal(const sf::Vector3f const &point, const sf::Vector3f const &direction) = 0;
+	virtual Vector3d getNormal(const Vector3d const &point, const Vector3d const &direction) = 0;
 	virtual void update(sf::RenderWindow &window, sf::Time time) = 0;
-	virtual Object::InsertRayValue insertRay(sf::Vector3f & cameraPosition, sf::Vector3f & direction) = 0;
-	virtual void changePosition(const sf::Vector3f const& position) = 0;
+	virtual Object::InsertRayValue insertRay(Vector3d& cameraPosition, Vector3d& direction) = 0;
+	virtual void changePosition(const Vector3d const& position) = 0;
 protected: 
-	sf::Color color;
+	Color color;
 	float reflective = 0.f;
 	float specular = -1;
 	virtual void render(sf::RenderWindow &window) = 0;

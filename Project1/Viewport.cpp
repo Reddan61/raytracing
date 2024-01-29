@@ -1,7 +1,7 @@
 #include "Viewport.h"
 
 
-Viewport::Viewport(sf::Uint16 w_, sf::Uint16 h_)
+Viewport::Viewport(unsigned int w_, unsigned int h_)
 {
 	this->w = w_;
 	this->h = h_;
@@ -17,7 +17,8 @@ Viewport::Viewport(sf::Uint16 w_, sf::Uint16 h_)
 		for (sf::Uint16 x = 0; x < this->w; x++) {
 			Pixel* pixel = new Pixel(255, 0, 0, 255);
 			this->pixels[y][x] = pixel;
-			this->image.setPixel(x, y, sf::Color(255, 0, 0, 255));
+			this->updatePixel(x, y, Color(255, 0, 0, 255));
+			//this->image.setPixel(x, y, sf::Color(255, 0, 0, 255));
 		}
 	}
 
@@ -40,10 +41,10 @@ Viewport::~Viewport()
 	delete[] this->pixels;
 }
 
-//Pixel*** Viewport::getPixels()
-//{
-//	return this->pixels;
-//}
+Pixel*** Viewport::getPixels()
+{
+	return this->pixels;
+}
 
 void Viewport::update(sf::RenderWindow& window)
 {
@@ -52,10 +53,10 @@ void Viewport::update(sf::RenderWindow& window)
 	window.draw(this->sprite);
 }
 
-void Viewport::updatePixel(sf::Uint16 x, sf::Uint16 y,	const sf::Color &color)
+void Viewport::updatePixel(unsigned int x, unsigned int y, const Color &color)
 {
 	//this->pixels[y][x]->setColor(color);
-	this->image.setPixel(x, y, color);
+	this->image.setPixel(x, y, sf::Color(color.r, color.g, color.b, color.alpha));
 }
 
 sf::Vector2<int> Viewport::getSize()

@@ -1,10 +1,11 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include "../Utils/Color/Color.h"
+#include "../Utils/Vector/Vector3d.h"
 #include "../Math.h"
 
 class Sky
 {
 public:
-	virtual sf::Color getColor(const sf::Vector3f &direction);
+	virtual Color getColor(const Vector3d &direction);
 };
 

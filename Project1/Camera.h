@@ -2,7 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include "./Objects/Object.h"
 #include "Math.h"
-#include "./Matrix/Matrix3d.h"
+#include "./Utils/Matrix/Matrix3d.h"
+#include "./Utils/Vector/Vector3d.h"
 
 class Camera
 {
@@ -10,14 +11,14 @@ public:
 	Camera(float x, float y, float z);
 	~Camera();
 
-	sf::Vector3f getPosition();
+	Vector3d getPosition();
 	void update(sf::RenderWindow& window, sf::Time time);
 	Matrix4d getRotation();
 
 private:
-	sf::Vector3f position;
-	sf::Vector3f front;
-	sf::Vector3f up;
+	Vector3d position;
+	Vector3d front;
+	Vector3d up;
 
 	//sf::CircleShape object;
 	const float SPEEDMOVE = 0.2;

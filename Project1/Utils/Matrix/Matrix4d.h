@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include "../Vector/Vector3d.h"
 #include "../Vector/Vector4d.h"
 
 class Matrix4d
@@ -13,7 +14,7 @@ public:
 	void showItems();
 
 	Matrix4d operator *(const Matrix4d& other);
-	sf::Vector3f operator *(const sf::Vector3f &other);
+	Vector3d operator *(const Vector3d &other);
 	
 private:
 	float matrix[4][4];

@@ -1,12 +1,12 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include "../Vector/Vector3d.h"
 
 class Vector4d
 {
 public:
 	Vector4d();
 	Vector4d(float x, float y, float z, float w);
-	Vector4d(const sf::Vector3f const &vec, float w = 1.f);
+	Vector4d(const Vector3d const &vec, float w = 1.f);
 	~Vector4d();
 
 	float& operator [](int index);

@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>P:\c++ lib\SFML-2.6.1-windows-vc17-64-bit\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>P:\opencl\lightOCLSDK\include;P:\libs\SFML\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>P:\c++ lib\SFML-2.6.1-windows-vc17-64-bit\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-system-d.lib;sfml-network-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>P:\opencl\lightOCLSDK\lib\x86_64;P:\libs\SFML\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenCL.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-system-d.lib;sfml-network-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
@@ -120,30 +120,32 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>P:\c++ lib\SFML-2.6.1-windows-vc17-64-bit\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>P:\opencl\lightOCLSDK\include;P:\libs\SFML\SFML-2.6.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>P:\c++ lib\SFML-2.6.1-windows-vc17-64-bit\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfml-audio.lib;sfml-network.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>P:\opencl\lightOCLSDK\lib\x86_64;P:\libs\SFML\SFML-2.6.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenCL.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfml-audio.lib;sfml-network.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Utils\Color\Color.cpp" />
     <ClCompile Include="Light\AmbientLight.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Light\DirectionalLight.cpp" />
     <ClCompile Include="Light\Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Math.cpp" />
-    <ClCompile Include="Matrix\Matrix4d.cpp" />
-    <ClCompile Include="Matrix\Matrix3d.cpp" />
+    <ClCompile Include="Utils\Matrix\Matrix4d.cpp" />
+    <ClCompile Include="Utils\Matrix\Matrix3d.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
+    <ClCompile Include="GPU\GPU.cpp" />
     <ClCompile Include="Pixel.cpp" />
     <ClCompile Include="Light\PointLight.cpp" />
     <ClCompile Include="Render.cpp" />
@@ -155,10 +157,12 @@
     <ClCompile Include="Objects\Triangle\Triangle.cpp" />
     <ClCompile Include="Objects\TriangleMesh\TriangleMesh.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="Vector\Vector4d.cpp" />
+    <ClCompile Include="Utils\Vector\Vector4d.cpp" />
+    <ClCompile Include="Utils\Vector\Vector3d.cpp" />
     <ClCompile Include="Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="RayTracing.cl" />
     <None Include="openal32.dll" />
     <None Include="sfml-audio-2.dll" />
     <None Include="sfml-audio-d-2.dll" />
@@ -172,14 +176,17 @@
     <None Include="sfml-window-d-2.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="C99\structs.h" />
+    <ClInclude Include="Utils\Color\Color.h" />
     <ClInclude Include="Light\AmbientLight.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Light\DirectionalLight.h" />
     <ClInclude Include="Light\Light.h" />
     <ClInclude Include="Math.h" />
-    <ClInclude Include="Matrix\Matrix4d.h" />
-    <ClInclude Include="Matrix\Matrix3d.h" />
+    <ClInclude Include="Utils\Matrix\Matrix4d.h" />
+    <ClInclude Include="Utils\Matrix\Matrix3d.h" />
     <ClInclude Include="Objects\Object.h" />
+    <ClInclude Include="GPU\GPU.h" />
     <ClInclude Include="Pixel.h" />
     <ClInclude Include="Light\PointLight.h" />
     <ClInclude Include="Render.h" />
@@ -191,7 +198,8 @@
     <ClInclude Include="Objects\Triangle\Triangle.h" />
     <ClInclude Include="Objects\TriangleMesh\TriangleMesh.h" />
     <ClInclude Include="Utils.h" />
-    <ClInclude Include="Vector\Vector4d.h" />
+    <ClInclude Include="Utils\Vector\Vector4d.h" />
+    <ClInclude Include="Utils\Vector\Vector3d.h" />
     <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

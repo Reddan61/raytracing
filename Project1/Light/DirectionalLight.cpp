@@ -1,10 +1,10 @@
 #include "DirectionalLight.h"
 
-DirectionalLight::DirectionalLight(const sf::Vector3f& const position, float bright) : Light(position, bright)
+DirectionalLight::DirectionalLight(const Vector3d& const position, float bright) : Light(position, bright)
 {
 }
 
-sf::Vector3f DirectionalLight::getLightVector(sf::Vector3f& point)
+Vector3d DirectionalLight::getLightVector(Vector3d& point)
 {
 	return this->getPosition();
 }

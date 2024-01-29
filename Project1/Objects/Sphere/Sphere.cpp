@@ -1,6 +1,6 @@
 #include "Sphere.h"
 
-Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius, float specular, float reflective)
+Sphere::Sphere(const Vector3d& const position, const Color& const color, int radius, float specular, float reflective)
 {
 	this->position = position;
 	this->color = color;
@@ -9,10 +9,10 @@ Sphere::Sphere(const sf::Vector3f& const position, const sf::Color& const color,
 	this->reflective = reflective;
 }
 
-sf::Vector3f Sphere::getNormal(const sf::Vector3f const& point, const sf::Vector3f const& direction)
+Vector3d Sphere::getNormal(const Vector3d const& point, const Vector3d const& direction)
 {
-	sf::Vector3f normal = point - this->position;
-	normal = Math::normalize(normal);
+	Vector3d normal = point - this->position;
+	normal = normal.normalize();
 
 	return normal;
 }
@@ -21,16 +21,34 @@ void Sphere::update(sf::RenderWindow& window, sf::Time time)
 {
 }
 
-void Sphere::changePosition(const sf::Vector3f const& position)
+void Sphere::changePosition(const Vector3d const& position)
 {
 	this->position = position;
+}
+
+Vector3d Sphere::getPosition()
+{
+	return this->position;
+}
+
+C99Sphere Sphere::getC99()
+{
+	C99Sphere result;
+
+	result.color = this->color.getC99();
+	result.position = this->getPosition().getC99();
+	result.radius = this->radius;
+	result.reflective = this->getReflective();
+	result.specular = this->getSpecular();
+
+	return result;
 }
 
 void Sphere::render(sf::RenderWindow& window)
 {
 }
 
-Object::InsertRayValue Sphere::insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction)
+Object::InsertRayValue Sphere::insertRay(Vector3d& cameraPosition, Vector3d& direction)
 {
 	auto oc = cameraPosition - this->position;
 

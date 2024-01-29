@@ -1,10 +1,10 @@
 #include "Math.h";
 
-float Math::GetDotProduct(const sf::Vector3f const &v1, const sf::Vector3f const& v2) {
+float Math::GetDotProduct(const Vector3d const &v1, const Vector3d const& v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-float Math::LengthVector(const sf::Vector3f const &vec)
+float Math::LengthVector(const Vector3d const &vec)
 {
 	return std::sqrt(Math::GetDotProduct(vec, vec));
 }
@@ -14,32 +14,32 @@ float Math::GetRadians(float degree)
 	return degree * (3.14f / 180.f);
 }
 
-sf::Color Math::Multiply(float number, const sf::Color const &color)
+//Color Math::Multiply(float number, const Color const &color)
+//{
+//	float r = color.r * number >= 255 ? 255 : color.r * number;
+//	float g = color.g * number >= 255 ? 255 : color.g * number;
+//	float b = color.b * number >= 255 ? 255 : color.b * number;
+//
+//	return Color(r, g, b, 255);
+//}
+
+//Color Math::Add(const Color const &c1, const Color const &c2)
+//{
+//	int r = c1.r + c2.r >= 255 ? 255 : c1.r + c2.r;
+//	int g = c1.g + c2.g >= 255 ? 255 : c1.g + c2.g;
+//	int b = c1.b + c2.b >= 255 ? 255 : c1.b + c2.b;
+//
+//	return Color(r, g, b, 255);
+//}
+
+//Vector3d Math::Add(const Vector3d const& c1, const Color const& c2)
+//{
+//	return Vector3d(c1.x + c2.r, c1.y + c2.g, c1.z + c2.b);
+//}
+
+Vector3d Math::GetCrossProduct(const Vector3d const& v1, const Vector3d const& v2)
 {
-	float r = color.r * number >= 255 ? 255 : color.r * number;
-	float g = color.g * number >= 255 ? 255 : color.g * number;
-	float b = color.b * number >= 255 ? 255 : color.b * number;
-
-	return sf::Color(r, g, b, 255);
-}
-
-sf::Color Math::Add(const sf::Color const &c1, const sf::Color const &c2)
-{
-	int r = c1.r + c2.r >= 255 ? 255 : c1.r + c2.r;
-	int g = c1.g + c2.g >= 255 ? 255 : c1.g + c2.g;
-	int b = c1.b + c2.b >= 255 ? 255 : c1.b + c2.b;
-
-	return sf::Color(r, g, b, 255);
-}
-
-sf::Vector3f Math::Add(const sf::Vector3f const& c1, const sf::Color const& c2)
-{
-	return sf::Vector3f(c1.x + c2.r, c1.y + c2.g, c1.z + c2.b);
-}
-
-sf::Vector3f Math::GetCrossProduct(const sf::Vector3f const& v1, const sf::Vector3f const& v2)
-{
-	sf::Vector3f result;
+	Vector3d result;
 
 	result.x = v1.y * v2.z - v1.z * v2.y;
 	result.y = v1.z * v2.x - v1.x * v2.z;
@@ -48,15 +48,15 @@ sf::Vector3f Math::GetCrossProduct(const sf::Vector3f const& v1, const sf::Vecto
 	return result;
 }
 
-Matrix4d Math::GetLookAt(const sf::Vector3f const& from, const sf::Vector3f const& to, const sf::Vector3f const& up)
+Matrix4d Math::GetLookAt(const Vector3d const& from, const Vector3d const& to, const Vector3d const& up)
 {
-	sf::Vector3f forward = from - to;
-	forward = Math::normalize(forward);
+	Vector3d forward = from - to;
+	forward = forward.normalize();
 
-	sf::Vector3f right = Math::GetCrossProduct(up, forward);
-	right = Math::normalize(right);
+	Vector3d right = Math::GetCrossProduct(up, forward);
+	right = right.normalize();
 
-	sf::Vector3f newUp = Math::GetCrossProduct(forward, right);
+	Vector3d newUp = Math::GetCrossProduct(forward, right);
 
 	Matrix4d rotation;
 
@@ -98,9 +98,9 @@ double Math::GetRandomRange(double min, double max)
 	return min + (max - min) * Math::GetRandom();
 }
 
-sf::Vector3f Math::normalize(const sf::Vector3f const& vec)
-{
-	float inv_length = 1.0f / sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
-
-	return vec * inv_length;
-}
+//Vector3d Math::normalize(const Vector3d const& vec)
+//{
+//	float inv_length = 1.0f / sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+//
+//	return vec * inv_length;
+//}

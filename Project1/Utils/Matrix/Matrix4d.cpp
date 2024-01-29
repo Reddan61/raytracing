@@ -53,7 +53,7 @@ Matrix4d Matrix4d::operator *(const Matrix4d& other)
 	return result;
 }
 
-sf::Vector3f Matrix4d::operator*(const sf::Vector3f& other)
+Vector3d Matrix4d::operator*(const Vector3d& other)
 {
 	Vector4d vec(other);
 	Vector4d result;
@@ -69,5 +69,5 @@ sf::Vector3f Matrix4d::operator*(const sf::Vector3f& other)
 	}
 
 
-	return sf::Vector3f(result[0], result[1], result[2]);
+	return Vector3d(result[0], result[1], result[2]);
 }

@@ -1,24 +1,25 @@
 #pragma once
-#include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cstdlib>
-#include "./Matrix/Matrix3d.h"
-#include "./Matrix/Matrix4d.h"
+#include "./Utils/Matrix/Matrix3d.h"
+#include "./Utils/Matrix/Matrix4d.h"
+#include "./Utils/Color/Color.h"
+#include "./Utils/Vector/Vector3d.h"
 
 #define Infinity std::numeric_limits<int>::max()
 #define Epsilon std::numeric_limits<float>::epsilon()
 
 namespace Math {
-	float GetDotProduct(const sf::Vector3f const& v1, const sf::Vector3f const& v2);
-	float LengthVector(const sf::Vector3f const& vec);
+	float GetDotProduct(const Vector3d const& v1, const Vector3d const& v2);
+	float LengthVector(const Vector3d const& vec);
 	float GetRadians(float degree);
 
-	sf::Color Multiply(float number, const sf::Color const& color);
-	sf::Color Add(const sf::Color  const& c1, const sf::Color const& c2);
-	sf::Vector3f Add(const sf::Vector3f  const& c1, const sf::Color const& c2);
-	sf::Vector3f GetCrossProduct(const sf::Vector3f const& v1, const sf::Vector3f const& v2);
-	sf::Vector3f normalize(const sf::Vector3f const& vec);
-	Matrix4d GetLookAt(const sf::Vector3f const& from, const sf::Vector3f const& to, const sf::Vector3f const& up);
+	//sf::Color Multiply(float number, const Color const& color);
+	//sf::Color Add(const Color  const& c1, const Color const& c2);
+	//Vector3d Add(const Vector3d const& c1, const Color const& c2);
+	Vector3d GetCrossProduct(const Vector3d const& v1, const Vector3d const& v2);
+	//Vector3d normalize(const Vector3d const& vec);
+	Matrix4d GetLookAt(const Vector3d const& from, const Vector3d const& to, const Vector3d const& up);
 
 	double GetRandom();
 	double GetRandomRange(double min, double max);

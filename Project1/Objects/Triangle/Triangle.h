@@ -5,16 +5,16 @@
 class Triangle : public Object
 {
 public:
-	Triangle(const sf::Vector3f const & A, const sf::Vector3f const & B, const sf::Vector3f const & C, const sf::Color const &color, float specular = -1, float reflective = 0);
+	Triangle(const Vector3d const & A, const Vector3d const & B, const Vector3d const & C, const Color const &color, float specular = -1, float reflective = 0);
 	~Triangle();
 
-	sf::Vector3f getNormal(const sf::Vector3f const& point, const sf::Vector3f const& direction) override;
+	Vector3d getNormal(const Vector3d const& point, const Vector3d const& direction) override;
 
 	void update(sf::RenderWindow& window, sf::Time time) override;
-	Object::InsertRayValue insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction) override;
-	void changePosition(const sf::Vector3f const& position) override;
+	Object::InsertRayValue insertRay(Vector3d& cameraPosition, Vector3d& direction) override;
+	void changePosition(const Vector3d const& position) override;
 private:
-	sf::Vector3f A, B, C;
+	Vector3d A, B, C;
 	bool isSingleSide = false;
 
 	void render(sf::RenderWindow& window) override;

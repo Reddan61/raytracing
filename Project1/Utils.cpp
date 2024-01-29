@@ -1,4 +1,4 @@
-#include "Utils.h"
+#include "./Utils.h"
 
 TriangleMesh* Utils::LoadCustomFormatFile(const std::string const& filename)
 {
@@ -38,14 +38,14 @@ TriangleMesh* Utils::LoadCustomFormatFile(const std::string const& filename)
         vertsArraySize += 1;
 
         // reading vertices
-        std::unique_ptr<sf::Vector3f[]> verts(new sf::Vector3f[vertsArraySize]);
+        std::unique_ptr<Vector3d[]> verts(new Vector3d[vertsArraySize]);
 
         for (uint32_t i = 0; i < vertsArraySize; ++i) {
             ss >> verts[i].x >> verts[i].y >> verts[i].z;
         }
 
         // reading normals
-        std::unique_ptr<sf::Vector3f[]> normals(new sf::Vector3f[vertsIndexArraySize]);
+        std::unique_ptr<Vector3d[]> normals(new Vector3d[vertsIndexArraySize]);
 
         for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
             ss >> normals[i].x >> normals[i].y >> normals[i].z;

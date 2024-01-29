@@ -1,18 +1,18 @@
 #pragma once
 #include<iostream>
-#include <SFML/Graphics.hpp>
+#include "Utils/Color/Color.h"
 
 class Pixel
 {
 public:
 	Pixel();
-	Pixel(sf::Uint8 r, sf::Uint8 g, sf::Uint8 b, sf::Uint8 alpha);
+	Pixel(unsigned int r, unsigned int g, unsigned int b, unsigned int alpha);
 	Pixel(Pixel &other);
 	~Pixel();
 
-	sf::Color* getColor();
-	void setColor(const sf::Color& color);
+	Color* getColor();
+	void setColor(const Color& color);
 private:
-	sf::Color *color = nullptr;
+	Color *color = nullptr;
 };
 

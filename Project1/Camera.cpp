@@ -1,13 +1,13 @@
 #include "Camera.h"
 
 Camera::Camera(float x, float y, float z) {
-	this->position = sf::Vector3f(x, y, z);
+	this->position = Vector3d(x, y, z);
 
 	this->rotationX = new Matrix4d();
 	this->rotationY = new Matrix4d();
 
-	this->front = sf::Vector3f(0, 0, -1.f);
-	this->up = sf::Vector3f(0, -1.f, 0);
+	this->front = Vector3d(0, 0, -1.f);
+	this->up = Vector3d(0, -1.f, 0);
 
 	this->setRotationX(0);
 	this->setRotationY(0);
@@ -20,7 +20,7 @@ Camera::~Camera()
 	delete this->rotationY;
 }
 
-sf::Vector3f Camera::getPosition()
+Vector3d Camera::getPosition()
 {
 	return this->position;
 }
@@ -40,14 +40,14 @@ void Camera::keyCheck(sf::Time time)
 	auto seconds = time.asSeconds();
 	bool moved = false;
 	bool rotated = false;
-	sf::Vector3f right = Math::normalize(Math::GetCrossProduct(this->front, this->up));
+	Vector3d right = Math::GetCrossProduct(this->front, this->up).normalize();
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-		this->position -= (this->SPEEDMOVE * seconds) * this->front;
+		this->position -= this->front * (this->SPEEDMOVE * seconds);
 		moved = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-		this->position += (this->SPEEDMOVE * seconds) * this->front;
+		this->position += this->front * (this->SPEEDMOVE * seconds);
 		moved = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
@@ -134,10 +134,10 @@ void Camera::calculatedRotations()
 
 void Camera::calculateFront()
 {
-	this->front = Math::normalize(this->getRotation() * sf::Vector3f(0, 0, -1.f));
+	this->front = (this->getRotation() * Vector3d(0, 0, -1.f)).normalize();
 }
 
 void Camera::calculateUp()
 {
-	this->up = Math::normalize(this->getRotation() * sf::Vector3f(0, -1.f, 0));
+	this->up = (this->getRotation() * Vector3d(0, -1.f, 0)).normalize();
 }

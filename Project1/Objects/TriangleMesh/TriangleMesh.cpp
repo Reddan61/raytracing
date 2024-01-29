@@ -6,15 +6,15 @@ TriangleMesh::TriangleMesh(
     const std::unique_ptr<uint32_t[]> const& faceIndex,
     const std::unique_ptr<uint32_t[]> const& vertsIndex,
     // вершины
-    const std::unique_ptr<sf::Vector3f[]> const& verts,
-    const std::unique_ptr<sf::Vector3f[]> const& normals,
+    const std::unique_ptr<Vector3d[]> const& verts,
+    const std::unique_ptr<Vector3d[]> const& normals,
     const std::unique_ptr<sf::Vector2f[]> const& st)
 {
     this->specular = 1000;
     this->reflective = 0.5f;
 
     int offset = 0;
-    std::vector<sf::Vector3f> polygonVert;
+    std::vector<Vector3d> polygonVert;
     polygonVert.reserve(3);
 
     auto *result = new std::vector<Triangle*>;
@@ -22,7 +22,7 @@ TriangleMesh::TriangleMesh(
     for (int i = 0; i < numFaces; i++) {
         for (int j = 0; j < faceIndex[i]; j++) {
             int vertId = vertsIndex[offset + j];
-            sf::Vector3f vert = verts[vertId];
+            Vector3d vert = verts[vertId];
 
              polygonVert.push_back(vert);
 
@@ -31,7 +31,7 @@ TriangleMesh::TriangleMesh(
                      polygonVert[0],
                      polygonVert[1],
                      polygonVert[2],
-                     sf::Color(255, 0, 0, 255),
+                     Color(255, 0, 0, 255),
                      this->specular,
                      this->reflective
                  ));
@@ -54,16 +54,16 @@ TriangleMesh::~TriangleMesh()
     }
 }
 
-sf::Vector3f TriangleMesh::getNormal(const sf::Vector3f const& point, const sf::Vector3f const& direction)
+Vector3d TriangleMesh::getNormal(const Vector3d const& point, const Vector3d const& direction)
 {
-    return sf::Vector3f();
+    return Vector3d();
 }
 
 void TriangleMesh::update(sf::RenderWindow& window, sf::Time time)
 {
 }
 
-Object::InsertRayValue TriangleMesh::insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction)
+Object::InsertRayValue TriangleMesh::insertRay(Vector3d& cameraPosition, Vector3d& direction)
 {
     if (this->polygons == nullptr) return Object::InsertRayValue(Infinity, Infinity, nullptr);
 
@@ -90,7 +90,7 @@ Object::InsertRayValue TriangleMesh::insertRay(sf::Vector3f& cameraPosition, sf:
     return result;
 }
 
-void TriangleMesh::changePosition(const sf::Vector3f const& position)
+void TriangleMesh::changePosition(const Vector3d const& position)
 {
     if (this->polygons == nullptr) return;
 

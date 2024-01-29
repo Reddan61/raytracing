@@ -64,7 +64,7 @@ Matrix3d Matrix3d::operator*(const Matrix3d& other)
 	return result;
 }
 
-sf::Vector3f Matrix3d::operator*(const sf::Vector3f& other)
+Vector3d Matrix3d::operator*(const Vector3d& other)
 {
 	float test[3] = { other.x, other.y, other.z };
 	float result[3] = { 0, 0, 0 };
@@ -80,5 +80,5 @@ sf::Vector3f Matrix3d::operator*(const sf::Vector3f& other)
 	}
 
 
-	return sf::Vector3f(result[0], result[1], result[2]);
+	return Vector3d(result[0], result[1], result[2]);
 }

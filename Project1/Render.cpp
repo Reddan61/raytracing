@@ -17,14 +17,14 @@ Render::~Render()
 	delete this->viewport;
 }
 
-sf::Vector3f Render::calculateDirection(float x, float y)
+Vector3d Render::calculateDirection(float x, float y)
 {
 	auto scale = this->viewport->getSize();
 
-	return sf::Vector3f(x * 1.f / scale.x, y * 1.f / scale.y, 1.f);
+	return Vector3d(x * 1.f / scale.x, y * 1.f / scale.y, 1.f);
 }
 
-sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, int reflection_depth, const Object const* origin)
+Color Render::traceRay(Scene* scene, Vector3d& cameraPosition, Vector3d& direction, float min_t, float max_t, int reflection_depth, const Object const* origin)
 {
 	Object::InsertRayValue intersection = this->getClosesetObject(scene, cameraPosition, direction, min_t, max_t, origin);
 
@@ -32,27 +32,27 @@ sf::Color Render::traceRay(Scene* scene, sf::Vector3f& cameraPosition, sf::Vecto
 		return scene->getSky()->getColor(direction);
 	}
 
-	sf::Vector3f point = cameraPosition + (direction * intersection.t1);
+	Vector3d point = cameraPosition + (direction * intersection.t1);
 
-	sf::Vector3f normal = intersection.object->getNormal(point, direction);
-	sf::Vector3f view = -1.f * direction;
+	Vector3d normal = intersection.object->getNormal(point, direction);
+	Vector3d view = -1.f * direction;
 
 	float lighting = this->ComputeLighting(scene, point, normal, view, intersection.object->getSpecular(), intersection.object);
-	sf::Color local_color = Math::Multiply(lighting, intersection.object->getColor());
+	Color local_color = lighting * intersection.object->getColor();
 
 	if (intersection.object->getReflective() <= 0 || reflection_depth <= 0) {
 		return local_color;
 	}
 
-	sf::Vector3f reflected_ray = this->getReflectRay(view, normal);
-	sf::Color reflected_color = this->traceRay(scene, point, reflected_ray, Epsilon, Infinity, reflection_depth - 1, intersection.object);
+	Vector3d reflected_ray = this->getReflectRay(view, normal);
+	Color reflected_color = this->traceRay(scene, point, reflected_ray, Epsilon, Infinity, reflection_depth - 1, intersection.object);
 
 	float reflective = intersection.object->getReflective();
 	
-	return Math::Add(Math::Multiply(1.f - reflective, local_color), Math::Multiply(reflective, reflected_color));
+	return ((1.f - reflective) * local_color) + (reflective * reflected_color);
 }
 
-float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& normal, sf::Vector3f& view, float specular, const Object const* origin)
+float Render::ComputeLighting(Scene* scene, Vector3d& point, Vector3d& normal, Vector3d& view, float specular, const Object const* origin)
 {
 	float bright = 0;
 	float length_n = Math::LengthVector(normal);
@@ -70,7 +70,7 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 			continue;
 		}
 
-		sf::Vector3f lightVector = light->getLightVector(point);
+		Vector3d lightVector = light->getLightVector(point);
 		float max_t = light->getMaxT();
 
 		// Shadow check.
@@ -89,7 +89,7 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 
 		// Specular reflection.
 		if (specular != -1) {
-			sf::Vector3f vec_r = this->getReflectRay(lightVector, normal);
+			Vector3d vec_r = this->getReflectRay(lightVector, normal);
 			float r_dot_v = Math::GetDotProduct(vec_r, view);
 
 			if (r_dot_v > 0) {
@@ -101,14 +101,14 @@ float Render::ComputeLighting(Scene* scene, sf::Vector3f& point, sf::Vector3f& n
 	return bright;
 }
 
-Object::InsertRayValue Render::getClosesetObject(Scene* scene, sf::Vector3f& cameraPosition, sf::Vector3f& direction, float min_t, float max_t, const Object const* origin)
+Object::InsertRayValue Render::getClosesetObject(Scene* scene, Vector3d& cameraPosition, Vector3d& direction, float min_t, float max_t, const Object const* origin)
 {
 	Object::InsertRayValue intersection(Infinity, Infinity, nullptr);
 
 	auto objects = scene->getSceneObjects();
 
 	for (int i = 0; i < objects->size(); i++) {
-		Object *object = objects->at(i);
+		Object *object = objects->at(i).get();
 
 		if (origin == object) continue;
 
@@ -127,34 +127,34 @@ Object::InsertRayValue Render::getClosesetObject(Scene* scene, sf::Vector3f& cam
 	return intersection;
 }
 
-sf::Vector3f Render::getReflectRay(const sf::Vector3f& const v1, const sf::Vector3f& const v2)
+Vector3d Render::getReflectRay(const Vector3d& const v1, const Vector3d& const v2)
 {
 	return 2.f * v2 * Math::GetDotProduct(v2, v1) - v1;
 }
 
-sf::Color Render::getPixelColor(float x, float y, Scene* scene, Matrix4d& rotation, sf::Vector3f& cameraPosition) {
-	sf::Vector3f direction = this->calculateDirection(x, y);
+Color Render::getPixelColor(float x, float y, Scene* scene, Matrix4d& rotation, Vector3d& cameraPosition) {
+	Vector3d direction = this->calculateDirection(x, y);
 
 	direction.x = direction.x * 2.0f - 1.0f;
 	direction.y = 1.0f - 2.0f * direction.y;
 
 	direction = rotation * direction;
 
-	direction = Math::normalize(direction);
+	direction = direction.normalize();
 
-	sf::Color color = this->traceRay(scene, cameraPosition, direction, 1, Infinity, this->reflection_depth);
+	Color color = this->traceRay(scene, cameraPosition, direction, 1, Infinity, this->reflection_depth);
 
 	return color;
 }
 
-void Render::perPixel(float x, float y, Scene* scene, Matrix4d& rotation, sf::Vector3f& cameraPosition)
+Color Render::perPixel(float x, float y, Scene* scene, Matrix4d& rotation, Vector3d& cameraPosition)
 {
 	// anti-aliasing
 	float aa = 4.f;
 	float half_aa = aa / 2;
 	float partial_aa = 1.f / half_aa;
 
-	sf::Vector3f color;
+	Vector3d color;
 
 	float pixel_start_x = x - 0.5f;
 	float pixel_start_y = y - 0.5f;
@@ -163,7 +163,7 @@ void Render::perPixel(float x, float y, Scene* scene, Matrix4d& rotation, sf::Ve
 		float u = pixel_start_x + (partial_aa * i);
 		float v = pixel_start_y + (partial_aa * i);
 
-		color = Math::Add(color, this->getPixelColor(u, v, scene, rotation, cameraPosition));
+		color = color + this->getPixelColor(u, v, scene, rotation, cameraPosition);
 	}
 
 	pixel_start_x = x + 0.5f;
@@ -172,37 +172,127 @@ void Render::perPixel(float x, float y, Scene* scene, Matrix4d& rotation, sf::Ve
 		float u = pixel_start_x - (partial_aa * i);
 		float v = pixel_start_y + (partial_aa * i);
 
-		color = Math::Add(color, this->getPixelColor(u, v, scene, rotation, cameraPosition));
+		color = color + this->getPixelColor(u, v, scene, rotation, cameraPosition);
 	}
 
-	sf::Vector3f result_ns = color / aa;
+	Vector3d result_ns = color / aa;
 
-	this->viewport->updatePixel(x, y, sf::Color(result_ns.x, result_ns.y, result_ns.z, 255));
+	this->viewport->updatePixel(x, y, Color(result_ns));
+
+	return Color(result_ns);
 }
 
-void Render::calculate(Scene* scene, ThreadPool& pool)
+void Render::calculate(Scene* scene, ThreadPool& pool, GPU&)
 {
 	auto scale = this->viewport->getSize();
 	auto cameraPosition = scene->getCamera()->getPosition();
 	Matrix4d rotation = scene->getCamera()->getRotation();
 
+	std::vector<cl::Platform> platforms;
+	cl::Platform::get(&platforms);
+
+	std::vector<cl::Device> devices;
+	platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+	//std::cout << devices[0].getInfo<CL_DEVICE_NAME>();
+
+	cl::Device gpu = devices[0];
+	cl::Context context(gpu);
+	cl::CommandQueue gpu_queue(context, gpu);
+
+	std::ifstream sourceFile("./RayTracing.cl");
+	std::string sourceCode(
+		std::istreambuf_iterator<char>(sourceFile),
+		(std::istreambuf_iterator<char>()));
+
+	cl::Program::Sources sources;
+	sources.push_back({ sourceCode.c_str(), sourceCode.length() });
+
+	cl::Program program(context, sources);
+	int ret = program.build(gpu, "-I ./C99/");
+	//int ret =  program.build(gpu, "-I P:/libs/SFML/SFML-2.6.1/include");
+	std::cout << ret << std::endl;
+	std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(gpu) << std::endl;
+	std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(gpu) << std::endl;
+	std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(gpu) << std::endl;
+	cl::Kernel kernel(program, "GetPerPixel");
+
+	//auto kernel = gpu.getKernel("GetPerPixel");
+	//auto context = gpu.getContext();
+	//auto gpu_queue = gpu.getQueue();
+
+	//Color pixels[800][1200];
+	//Pixel ***pixels = this->viewport->getPixels();
+	//Color* pixels = new Color[scale.y * scale.x];
+	//float size = scale.y * scale.x * sizeof(Color);
+
+	float* pixels = new float[scale.y * scale.x];
+	float size = scale.y * scale.x * sizeof(float);
+
+	//cl::Buffer renderBuff = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(this), this);
+	//cl::Buffer sceneBuff = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(scene), scene);
+	//cl::Buffer rotationBuff = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(rotation), &rotation);
+	//cl::Buffer cameraPosBuff = cl::Buffer(context, CL_MEM_READ_ONLY , sizeof(cameraPosition), &cameraPosition);
+
+	cl::Buffer pixelsBuff = cl::Buffer(
+		context, 
+		CL_MEM_WRITE_ONLY, 
+		size
+	);
+
 	int threads_count = pool.getThreadsCount();
 
 	int sizeY = scale.y / threads_count;
 
-	for (int i = 0; i < threads_count; i++) {
-		pool.addTask([i, sizeY, &scale, scene, &rotation, &cameraPosition, this]() {
-			int height = sizeY * (i + 1);
+	//for (int i = 0; i < threads_count; i++) {
+	//	pool.addTask([i, sizeY, &scale,
+	//		scene, &rotation, &cameraPosition, 
+	//		//&kernel, 
+	//		//&renderBuff, 
+	//		//&sceneBuff, &rotationBuff, &cameraPosBuff, 
+	//		//&gpu_queue,
+	//		//&pixelsBuff,
+	//		this ]() {
+	//		int height = sizeY * (i + 1);
 
-			for (int y = sizeY * i; y < height; y++) {
-				for (int x = 0; x < scale.x; x++) {
-					this->perPixel(x, y, scene, rotation, cameraPosition);
-				}
-			}
-		});
-	}
+	//		for (int y = sizeY * i; y < height; y++) {
+	//			for (int x = 0; x < scale.x; x++) {
+	//		/*		kernel.setArg(0, renderBuff);
+	//				kernel.setArg(1, sceneBuff);
+	//				kernel.setArg(2, rotationBuff);
+	//				kernel.setArg(3, cameraPosBuff);
+	//				kernel.setArg(4, x);
+	//				kernel.setArg(5, y);*/
+	//				//kernel.setArg(6, pixelsBuff);
+	//				//kernel.setArg(0, pixelsBuff);
 
-	int totalColoredPixels = sizeY * threads_count;
+	//		/*		gpu_queue.enqueueNDRangeKernel(
+	//					kernel, 
+	//					cl::NullRange, 
+	//					cl::NDRange(scale.x * scale.y), 
+	//					cl::NDRange(64)
+	//				);*/
+	//				this->perPixel(x, y, scene, rotation, cameraPosition);
+	//			}
+	//		}
+	//	});
+	//}
+
+	//kernel.setArg(0, renderBuff);
+	//kernel.setArg(1, sceneBuff);
+	//kernel.setArg(2, rotationBuff);
+	//kernel.setArg(3, cameraPosBuff);
+	//kernel.setArg(4, 0);
+	//kernel.setArg(5, 0);
+	kernel.setArg(0, pixelsBuff);
+
+	gpu_queue.enqueueNDRangeKernel(
+		kernel,
+		cl::NullRange,
+		cl::NDRange(scale.x * scale.y),
+		cl::NDRange(64)
+	);
+
+	/*int totalColoredPixels = sizeY * threads_count;
 
 	if (totalColoredPixels != scale.y) {
 		pool.addTask([totalColoredPixels, &scale, scene, &rotation, &cameraPosition, this]() {
@@ -212,16 +302,22 @@ void Render::calculate(Scene* scene, ThreadPool& pool)
 				}
 			}
 		});
-	}
+	}*/
 
 	pool.wait();
+	gpu_queue.finish();
+
+	gpu_queue.enqueueReadBuffer(pixelsBuff, CL_TRUE, 0, size, pixels);
+
+	std::cout << "result = " << pixels[0] << std::endl;
+	std::cout << "finish" << std::endl;
 }
 
 
-void Render::update(Scene* scene, sf::RenderWindow& window, sf::Time& time, ThreadPool& pool)
+void Render::update(Scene* scene, sf::RenderWindow& window, sf::Time& time, ThreadPool& pool, GPU& gpu)
 {
 	scene->update(window, time);
-	this->calculate(scene, pool);
+	this->calculate(scene, pool, gpu);
 	this->viewport->update(window);
 }
 

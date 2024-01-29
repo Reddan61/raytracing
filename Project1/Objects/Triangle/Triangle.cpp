@@ -1,6 +1,6 @@
 #include "Triangle.h"
 
-Triangle::Triangle(const sf::Vector3f const& A, const sf::Vector3f const& B, const sf::Vector3f const& C, const sf::Color const& color, float specular, float reflective)
+Triangle::Triangle(const Vector3d const& A, const Vector3d const& B, const Vector3d const& C, const Color const& color, float specular, float reflective)
 {
     this->A = A;
     this->B = B;
@@ -16,22 +16,22 @@ Triangle::~Triangle()
 {
 }
 
-sf::Vector3f Triangle::getNormal(const sf::Vector3f const& point, const sf::Vector3f const& direction)
+Vector3d Triangle::getNormal(const Vector3d const& point, const Vector3d const& direction)
 {
-    sf::Vector3f AB = this->B - this->A;
-    sf::Vector3f AC = this->C - this->A;
+    Vector3d AB = this->B - this->A;
+    Vector3d AC = this->C - this->A;
 
-    sf::Vector3f normal = Math::normalize(Math::GetCrossProduct(AB, AC));
+    Vector3d normal = Math::GetCrossProduct(AB, AC).normalize();
 
     return normal;
 }
 
-Object::InsertRayValue Triangle::insertRay(sf::Vector3f& cameraPosition, sf::Vector3f& direction)
+Object::InsertRayValue Triangle::insertRay(Vector3d& cameraPosition, Vector3d& direction)
 {
-    sf::Vector3f e1 = this->B - this->A;
-    sf::Vector3f e2 = this->C - this->A;
+    Vector3d e1 = this->B - this->A;
+    Vector3d e2 = this->C - this->A;
 
-    sf::Vector3f pvec = Math::GetCrossProduct(direction, e2);
+    Vector3d pvec = Math::GetCrossProduct(direction, e2);
     float det = Math::GetDotProduct(e1, pvec);
 
 
@@ -44,14 +44,14 @@ Object::InsertRayValue Triangle::insertRay(sf::Vector3f& cameraPosition, sf::Vec
 
     float inv_det = 1.0f / det;
 
-    sf::Vector3f tvec = cameraPosition - this->A;
+    Vector3d tvec = cameraPosition - this->A;
     float v = inv_det * Math::GetDotProduct(tvec, pvec);
 
     if (v < 0.0f || v > 1.0f) {
         return Object::InsertRayValue(Infinity, Infinity, nullptr);
     }
 
-    sf::Vector3f qvec = Math::GetCrossProduct(tvec, e1);
+    Vector3d qvec = Math::GetCrossProduct(tvec, e1);
     float w = inv_det * Math::GetDotProduct(direction, qvec);
 
     if (w < 0.0f || w + v > 1.0f) {
@@ -65,7 +65,7 @@ Object::InsertRayValue Triangle::insertRay(sf::Vector3f& cameraPosition, sf::Vec
     return Object::InsertRayValue(Infinity, Infinity, nullptr);
 }
 
-void Triangle::changePosition(const sf::Vector3f const& position)
+void Triangle::changePosition(const Vector3d const& position)
 {
     this->A = this->A + position;
     this->B = this->B + position;

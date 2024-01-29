@@ -2,20 +2,25 @@
 #include <iostream>
 #include "../Object.h";
 #include "../../Math.h";
+#include "../../C99/structs.h"
 
 class Sphere : public Object
 {
 public:
-	Sphere(const sf::Vector3f& const position, const sf::Color& const color, int radius = 1, float specular = -1, float reflective = 0);
+	Sphere(const Vector3d& const position, const Color& const color, int radius = 1, float specular = -1, float reflective = 0);
 	
-	sf::Vector3f getNormal(const sf::Vector3f const& point, const sf::Vector3f const& direction) override;
+	Vector3d getNormal(const Vector3d const& point, const Vector3d const& direction) override;
 
-	Object::InsertRayValue insertRay(sf::Vector3f & cameraPosition, sf::Vector3f & direction) override;
+	Object::InsertRayValue insertRay(Vector3d& cameraPosition, Vector3d& direction) override;
 	void update(sf::RenderWindow& window, sf::Time time) override;
-	void changePosition(const sf::Vector3f const& position) override;
+	void changePosition(const Vector3d const& position) override;
+	Vector3d getPosition();
+
+	C99Sphere getC99();
+
 private:
 	int radius;
-	sf::Vector3f position;
+	Vector3d position;
 
 	void render(sf::RenderWindow& window) override;
 };

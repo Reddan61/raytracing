@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include <SFML/Graphics.hpp>
+#include "../Vector/Vector3d.h"
 
 class Matrix3d
 {
@@ -15,7 +15,7 @@ public:
 	void showItems();
 
 	Matrix3d operator *(const Matrix3d &other);
-	sf::Vector3f operator *(const sf::Vector3f &other);
+	Vector3d operator *(const Vector3d &other);
 
 private:
 	float matrix[3][3];
