@@ -1,12 +1,12 @@
-#include "./constructors.h"
+#include "structs.h"
 
 C99Color ConstructColor(float r, float g, float b)
 {
     C99Color color;
 
-    color.r = r > 255 ? 255 : r;
-    color.g = g > 255 ? 255 : g;
-    color.b = b > 255 ? 255 : b;
+    color.r = r > 255 ? 255 : (r < 0 ? 0 : r);
+    color.g = g > 255 ? 255 : (g < 0 ? 0 : g);
+    color.b = b > 255 ? 255 : (b < 0 ? 0 : b);
 
     return color;
 };

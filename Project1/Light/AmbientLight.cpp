@@ -18,3 +18,12 @@ float AmbientLight::getMaxT()
 {
 	return Infinity;
 }
+
+C99AmbientLight* AmbientLight::getC99()
+{
+	C99AmbientLight *result = new C99AmbientLight;
+
+	result->bright = this->getBright();
+
+	return result;
+}

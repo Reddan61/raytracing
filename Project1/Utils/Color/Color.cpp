@@ -24,6 +24,14 @@ Color::Color(const Vector3d& vec)
 	this->alpha = 255;
 }
 
+Color::Color(C99Color col)
+{
+	this->r = col.r;
+	this->g = col.g;
+	this->b = col.b;
+	this->alpha = 255;
+}
+
 Color::~Color()
 {
 }

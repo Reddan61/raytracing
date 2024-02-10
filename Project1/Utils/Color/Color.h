@@ -10,6 +10,7 @@ public:
 	Color();
 	Color(unsigned int r, unsigned int g, unsigned int b, unsigned int alpha);
 	Color(const Vector3d& vec);
+	Color(C99Color col);
 	~Color();
 
 	C99Color getC99();

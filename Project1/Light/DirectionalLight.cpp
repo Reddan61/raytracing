@@ -18,3 +18,14 @@ float DirectionalLight::getMaxT()
 {
 	return Infinity;
 }
+
+C99DirectionalLight DirectionalLight::getC99()
+{
+	C99DirectionalLight result;
+
+	result.bright = this->getBright();
+	result.maxT = this->getMaxT();
+	result.position = this->getPosition().getC99();
+
+	return result;
+}

@@ -18,3 +18,14 @@ float PointLight::getMaxT()
 {
 	return 1.0f;
 }
+
+C99PointLight PointLight::getC99()
+{
+	C99PointLight result;
+
+	result.bright = this->getBright();
+	result.maxT = this->getMaxT();
+	result.position = this->getPosition().getC99();
+
+	return result;
+}

@@ -1,4 +1,4 @@
-#include "./utils.h"
+#include "constructors.cl"
 
 C99Vector VectorDivision(C99Vector vec, float num)
 {
@@ -33,7 +33,29 @@ C99Vector VectorAdd(C99Vector* v1, C99Vector* v2)
     return result;
 }
 
+C99Vector VectorAddWithLeftGlobal(__global C99Vector* v1, C99Vector* v2)
+{
+    C99Vector result = ConstructVector(
+        v1->x + v2->x,
+        v1->y + v2->y,
+        v1->z + v2->z
+    );
+
+    return result;
+}
+
 C99Vector VectorSubtract(C99Vector* left, C99Vector* right)
+{
+    C99Vector result = ConstructVector(
+        left->x - right->x,
+        left->y - right->y,
+        left->z - right->z
+    );
+
+    return result;
+}
+
+C99Vector VectorSubtractWithLeftGlobal(__global C99Vector* left, C99Vector* right)
 {
     C99Vector result = ConstructVector(
         left->x - right->x,

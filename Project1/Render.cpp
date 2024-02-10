@@ -61,7 +61,7 @@ float Render::ComputeLighting(Scene* scene, Vector3d& point, Vector3d& normal, V
 	auto lights = scene->getSceneLights();
 
 	for (int i = 0; i < lights->size(); i++) {
-		Light *light = lights->at(i);
+		Light *light = lights->at(i).get();
 
 		// Ambient light
 		if (!light->hasPosition()) {
@@ -182,142 +182,214 @@ Color Render::perPixel(float x, float y, Scene* scene, Matrix4d& rotation, Vecto
 	return Color(result_ns);
 }
 
-void Render::calculate(Scene* scene, ThreadPool& pool, GPU&)
+void Render::calculate(Scene* scene, ThreadPool& pool)
 {
-	auto scale = this->viewport->getSize();
-	auto cameraPosition = scene->getCamera()->getPosition();
-	Matrix4d rotation = scene->getCamera()->getRotation();
+	//auto scale = this->viewport->getSize();
+	//Vector3d cameraPosition = scene->getCamera()->getPosition();
+	//Matrix4d rotation = scene->getCamera()->getRotation();
 
-	std::vector<cl::Platform> platforms;
-	cl::Platform::get(&platforms);
+	//C99Scene* gpu_scene = scene->getGpuScene();
+	//
+	//if (gpu_scene == nullptr) return;
 
-	std::vector<cl::Device> devices;
-	platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
-	//std::cout << devices[0].getInfo<CL_DEVICE_NAME>();
+	//C99Vector origin_temp = cameraPosition.getC99();
+	//C99Vector* origin = &origin_temp;
 
-	cl::Device gpu = devices[0];
-	cl::Context context(gpu);
-	cl::CommandQueue gpu_queue(context, gpu);
+	//std::vector<cl::Platform> platforms;
+	//cl::Platform::get(&platforms);
 
-	std::ifstream sourceFile("./RayTracing.cl");
-	std::string sourceCode(
-		std::istreambuf_iterator<char>(sourceFile),
-		(std::istreambuf_iterator<char>()));
+	//std::vector<cl::Device> devices;
+	//platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
 
-	cl::Program::Sources sources;
-	sources.push_back({ sourceCode.c_str(), sourceCode.length() });
+	//cl::Device gpu = devices[0];
+	//cl::Context context(gpu);
+	//cl::CommandQueue gpu_queue(context, gpu);
 
-	cl::Program program(context, sources);
-	int ret = program.build(gpu, "-I ./C99/");
-	//int ret =  program.build(gpu, "-I P:/libs/SFML/SFML-2.6.1/include");
-	std::cout << ret << std::endl;
-	std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(gpu) << std::endl;
-	std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(gpu) << std::endl;
-	std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(gpu) << std::endl;
-	cl::Kernel kernel(program, "GetPerPixel");
+	//std::ifstream sourceFile("./Kernel/RayTracing.cl");
+	//std::string sourceCode(
+	//	std::istreambuf_iterator<char>(sourceFile),
+	//	(std::istreambuf_iterator<char>()));
 
-	//auto kernel = gpu.getKernel("GetPerPixel");
-	//auto context = gpu.getContext();
-	//auto gpu_queue = gpu.getQueue();
+	//cl::Program::Sources sources;
+	//sources.push_back({ sourceCode.c_str(), sourceCode.length() });
 
-	//Color pixels[800][1200];
-	//Pixel ***pixels = this->viewport->getPixels();
-	//Color* pixels = new Color[scale.y * scale.x];
-	//float size = scale.y * scale.x * sizeof(Color);
+	//cl::Program program(context, sources);
+	//int ret = program.build(gpu, "-I ./C99/ -I ./Kernel/utils");
 
-	float* pixels = new float[scale.y * scale.x];
-	float size = scale.y * scale.x * sizeof(float);
+	//std::cout << "---------- LOGS ----------" << std::endl;
+	//std::cout << ret << std::endl;
+	//std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(gpu) << std::endl;
+	//std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(gpu) << std::endl;
+	//std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(gpu) << std::endl;
+	//std::cout << "---------- 2222222 ----------" << std::endl;
+	//std::cout << gpu.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << std::endl;
+	//std::cout << "CL_DEVICE_MAX_WORK_GROUP_SIZE" << gpu.getInfo<CL_DEVICE_MAX_WORK_GROUP_SIZE>() << std::endl;
+	//std::cout << "CL_DEVICE_MAX_WORK_ITEM_SIZES" << gpu.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>()[0] << std::endl;
 
-	//cl::Buffer renderBuff = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(this), this);
-	//cl::Buffer sceneBuff = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(scene), scene);
-	//cl::Buffer rotationBuff = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(rotation), &rotation);
-	//cl::Buffer cameraPosBuff = cl::Buffer(context, CL_MEM_READ_ONLY , sizeof(cameraPosition), &cameraPosition);
+	//cl::Kernel kernel(program, "RayTracing");
 
-	cl::Buffer pixelsBuff = cl::Buffer(
-		context, 
-		CL_MEM_WRITE_ONLY, 
-		size
-	);
+	//cl::detail::size_t_array global = kernel.getWorkGroupInfo<CL_KERNEL_GLOBAL_WORK_SIZE>(gpu);
+	//cl::size_type test = kernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(gpu);
 
-	int threads_count = pool.getThreadsCount();
+	//std::cout << " 0 = " << global[0] << " 1 = " << global[1] << " 2 = " << global[2] << std::endl;
+	//std::cout << " 0 = " << test << std::endl;
+	//std::cout << "---------- LOGS ----------" << std::endl;
 
-	int sizeY = scale.y / threads_count;
+	//float global_workers_size = scale.x * scale.y;
+	////float global_workers_size = scale.y * scale.x;
+	//C99Color* pixels = new C99Color[global_workers_size];
+	//float size = global_workers_size * sizeof(C99Color);
 
-	//for (int i = 0; i < threads_count; i++) {
-	//	pool.addTask([i, sizeY, &scale,
-	//		scene, &rotation, &cameraPosition, 
-	//		//&kernel, 
-	//		//&renderBuff, 
-	//		//&sceneBuff, &rotationBuff, &cameraPosBuff, 
-	//		//&gpu_queue,
-	//		//&pixelsBuff,
-	//		this ]() {
-	//		int height = sizeY * (i + 1);
+	//size_t scene_sphere_size = 0;
+	//size_t scene_point_light_size = 0;
+	//size_t scene_directional_light_size = 0;
+	//size_t scene_ambient_light_size = 0;
+	//size_t scene_other_size = sizeof(int) * 3;
 
-	//		for (int y = sizeY * i; y < height; y++) {
+	//if (gpu_scene->spheres_num > 0) {
+	//	scene_sphere_size = sizeof(C99Sphere) * gpu_scene->spheres_num;
+	//}
+
+	//if (gpu_scene->numPointLights > 0) {
+	//	scene_point_light_size = sizeof(C99PointLight) * gpu_scene->numPointLights;
+	//}	
+	//
+	//if (gpu_scene->numDirectionalLights > 0) {
+	//	scene_directional_light_size = sizeof(C99DirectionalLight) * gpu_scene->numDirectionalLights;
+	//}
+
+	//if (gpu_scene->ambientLight != nullptr) {
+	//	scene_ambient_light_size = sizeof(C99AmbientLight);
+	//}
+
+	//size_t scene_size = scene_sphere_size
+	//	+ scene_point_light_size
+	//	+ scene_directional_light_size
+	//	+ scene_ambient_light_size
+	//	+ scene_other_size;
+
+	//int err;
+	//cl::Buffer sceneBuff = cl::Buffer(
+	//	context, 
+	//	CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+	//	//CL_MEM_READ_ONLY,
+	//	scene_size,
+	//	gpu_scene,
+	//	&err
+	//);
+
+	//std::cout << " err scene = " << err << std::endl;
+
+	//cl::Buffer originBuff = cl::Buffer(
+	//	context, 
+	//	CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+	//	//CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
+	//	sizeof(C99Vector),
+	//	origin,
+	//	&err
+	//);
+
+	//std::cout << " err origin = " << err << std::endl;
+
+	//cl::Buffer pixelsBuff = cl::Buffer(
+	//	context, 
+	//	CL_MEM_WRITE_ONLY, 
+	//	size
+	//);	
+
+	////int* output = new int[scale.y * scale.x];
+	////float size2 = scale.y * scale.x * sizeof(int);
+
+	////int threads_count = pool.getThreadsCount();
+
+	////int sizeY = scale.y / threads_count;
+
+	////for (int i = 0; i < threads_count; i++) {
+	////	pool.addTask([i, sizeY, &scale,
+	////		scene, &rotation, &cameraPosition, 
+	////		//&kernel, 
+	////		//&renderBuff, 
+	////		//&sceneBuff, &rotationBuff, &cameraPosBuff, 
+	////		//&gpu_queue,
+	////		//&pixelsBuff,
+	////		this ]() {
+	////		int height = sizeY * (i + 1);
+
+	////		for (int y = sizeY * i; y < height; y++) {
+	////			for (int x = 0; x < scale.x; x++) {
+	////		/*		kernel.setArg(0, renderBuff);
+	////				kernel.setArg(1, sceneBuff);
+	////				kernel.setArg(2, rotationBuff);
+	////				kernel.setArg(3, cameraPosBuff);
+	////				kernel.setArg(4, x);
+	////				kernel.setArg(5, y);*/
+	////				//kernel.setArg(6, pixelsBuff);
+	////				//kernel.setArg(0, pixelsBuff);
+
+	////		/*		gpu_queue.enqueueNDRangeKernel(
+	////					kernel, 
+	////					cl::NullRange, 
+	////					cl::NDRange(scale.x * scale.y), 
+	////					cl::NDRange(64)
+	////				);*/
+	////				this->perPixel(x, y, scene, rotation, cameraPosition);
+	////			}
+	////		}
+	////	});
+	////}
+
+	//kernel.setArg(0, originBuff);
+	//kernel.setArg(1, sceneBuff);
+	//kernel.setArg(2, scale.x);
+	//kernel.setArg(3, scale.y);
+	//kernel.setArg(4, pixelsBuff);
+	////kernel.setArg(5, outputBuff);
+
+	////err = gpu_queue.enqueueNDRangeKernel(
+	////	kernel,
+	////	cl::NullRange,
+	////	cl::NDRange(1200, 800),
+	////	cl::NDRange(16, 16)
+	////);
+
+	//std::cout << "err queue = " << err << std::endl;
+
+	///*int totalColoredPixels = sizeY * threads_count;
+
+	//if (totalColoredPixels != scale.y) {
+	//	pool.addTask([totalColoredPixels, &scale, scene, &rotation, &cameraPosition, this]() {
+	//		for (int y = totalColoredPixels; y < scale.y; y++) {
 	//			for (int x = 0; x < scale.x; x++) {
-	//		/*		kernel.setArg(0, renderBuff);
-	//				kernel.setArg(1, sceneBuff);
-	//				kernel.setArg(2, rotationBuff);
-	//				kernel.setArg(3, cameraPosBuff);
-	//				kernel.setArg(4, x);
-	//				kernel.setArg(5, y);*/
-	//				//kernel.setArg(6, pixelsBuff);
-	//				//kernel.setArg(0, pixelsBuff);
-
-	//		/*		gpu_queue.enqueueNDRangeKernel(
-	//					kernel, 
-	//					cl::NullRange, 
-	//					cl::NDRange(scale.x * scale.y), 
-	//					cl::NDRange(64)
-	//				);*/
 	//				this->perPixel(x, y, scene, rotation, cameraPosition);
 	//			}
 	//		}
 	//	});
-	//}
+	//}*/
 
-	//kernel.setArg(0, renderBuff);
-	//kernel.setArg(1, sceneBuff);
-	//kernel.setArg(2, rotationBuff);
-	//kernel.setArg(3, cameraPosBuff);
-	//kernel.setArg(4, 0);
-	//kernel.setArg(5, 0);
-	kernel.setArg(0, pixelsBuff);
+	////pool.wait();
+	//gpu_queue.finish();
+	//
+	//gpu_queue.enqueueReadBuffer(pixelsBuff, CL_TRUE, 0, size, pixels);
+	////gpu_queue.enqueueReadBuffer(outputBuff, CL_TRUE, 0, size2, output);
 
-	gpu_queue.enqueueNDRangeKernel(
-		kernel,
-		cl::NullRange,
-		cl::NDRange(scale.x * scale.y),
-		cl::NDRange(64)
-	);
+	////std::cout << "output = " << output[0] << std::endl;
 
-	/*int totalColoredPixels = sizeY * threads_count;
+	////for (int y = 0; y < scale.y; y++) {
+	////	for (int x = 0; x < scale.x; x++) {
+	////		C99Color color = pixels[y + x];
 
-	if (totalColoredPixels != scale.y) {
-		pool.addTask([totalColoredPixels, &scale, scene, &rotation, &cameraPosition, this]() {
-			for (int y = totalColoredPixels; y < scale.y; y++) {
-				for (int x = 0; x < scale.x; x++) {
-					this->perPixel(x, y, scene, rotation, cameraPosition);
-				}
-			}
-		});
-	}*/
+	////		this->viewport->updatePixel(x, y, Color(color));
+	////	}
+	////}
 
-	pool.wait();
-	gpu_queue.finish();
-
-	gpu_queue.enqueueReadBuffer(pixelsBuff, CL_TRUE, 0, size, pixels);
-
-	std::cout << "result = " << pixels[0] << std::endl;
-	std::cout << "finish" << std::endl;
+	//delete[] pixels;
 }
 
 
-void Render::update(Scene* scene, sf::RenderWindow& window, sf::Time& time, ThreadPool& pool, GPU& gpu)
+void Render::update(Scene* scene, sf::RenderWindow& window, sf::Time& time, ThreadPool& pool)
 {
 	scene->update(window, time);
-	this->calculate(scene, pool, gpu);
+	this->calculate(scene, pool);
 	this->viewport->update(window);
 }
 
