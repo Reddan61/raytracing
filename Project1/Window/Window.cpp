@@ -1,33 +1,55 @@
 #include "Window.h"
 
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    app->on_resize();
+}
+
 Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT)
 {
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     this->_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan window", nullptr, nullptr);
+    glfwSetWindowUserPointer(this->_window, this);
+    glfwSetFramebufferSizeCallback(this->_window, framebufferResizeCallback);
 
-    Vulkan vulkan(this);
+    this->vulkan = new Vulkan(this);
 }
 
 Window::~Window()
 {
     this->glfw_clean_up();
+    delete this->vulkan;
 }
 
 void Window::run()
 {
     while (!glfwWindowShouldClose(this->_window)) {
         glfwPollEvents();
+        this->draw();
     }
+
+    vkDeviceWaitIdle(this->vulkan->logical_device);
 }
 
 void Window::glfw_clean_up()
 {
     glfwDestroyWindow(this->_window);
     glfwTerminate();
+}
+
+void Window::draw()
+{
+    if (this->vulkan != nullptr) {
+        this->vulkan->draw_frame(this);
+    }
+}
+
+void Window::on_resize()
+{
+    this->vulkan->set_framebuffer_resized(true);
 }
 
 std::pair<uint32_t, const char**> Window::get_required_from_vulkan_extensions()
