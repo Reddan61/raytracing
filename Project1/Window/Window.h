@@ -19,6 +19,9 @@ private:
 	GLFWwindow* _window = nullptr;
 	Vulkan* vulkan = nullptr;
 
+	float lastFrameTime = 0.0f;
+	double lastTime = 0.0f;
+
 	void glfw_clean_up();
 	void draw();
 	void on_resize();

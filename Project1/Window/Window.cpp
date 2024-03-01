@@ -16,6 +16,7 @@ Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT)
     glfwSetFramebufferSizeCallback(this->_window, framebufferResizeCallback);
 
     this->vulkan = new Vulkan(this);
+    this->lastTime = glfwGetTime();
 }
 
 Window::~Window()
@@ -29,6 +30,10 @@ void Window::run()
     while (!glfwWindowShouldClose(this->_window)) {
         glfwPollEvents();
         this->draw();
+
+        double currentTime = glfwGetTime();
+        this->lastFrameTime = (currentTime - this->lastTime) * 1000.0f;
+        this->lastTime = currentTime;
     }
 
     vkDeviceWaitIdle(this->vulkan->logical_device);

@@ -53,9 +53,7 @@ struct Vertex {
 };
 
 struct UniformBufferObject {
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 proj;
+	float deltaTime = 1.0f;
 };
 
 struct Particle {
@@ -212,7 +210,7 @@ private:
 
 	void record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	void create_sync_objects();
-	void update_uniform_buffer(uint32_t currentImage);
+	void update_uniform_buffer(uint32_t currentImage, float lastFrameTime);
 	void draw_frame(Window* window);
 	void recreate_swapchain(Window *window);
 	void cleanup_swapchain();

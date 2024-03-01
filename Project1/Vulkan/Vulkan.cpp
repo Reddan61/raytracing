@@ -802,7 +802,7 @@ void Vulkan::draw_frame(Window *window)
     // Compute submission        
     vkWaitForFences(this->logical_device, 1, &compute_in_flight_fences[current_frame], VK_TRUE, UINT64_MAX);
 
-    this->update_uniform_buffer(current_frame);
+    this->update_uniform_buffer(current_frame, window->lastFrameTime);
 
     vkResetFences(this->logical_device, 1, &compute_in_flight_fences[current_frame]);
 
@@ -1353,19 +1353,10 @@ void Vulkan::create_compute_descriptor_sets() {
     }
 }
 
-void Vulkan::update_uniform_buffer(uint32_t currentImage)
+void Vulkan::update_uniform_buffer(uint32_t currentImage, float lastFrameTime)
 {
-    static auto startTime = std::chrono::high_resolution_clock::now();
-
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), this->swap_chain_extent.width / (float)this->swap_chain_extent.height, 0.1f, 10.0f);
-
-    ubo.proj[1][1] *= -1;
+    ubo.deltaTime = lastFrameTime * 2.0f;
 
     memcpy(this->uniform_buffers_mapped[currentImage], &ubo, sizeof(ubo));
 }
