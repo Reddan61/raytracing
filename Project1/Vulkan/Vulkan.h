@@ -24,6 +24,7 @@ class Window;
 struct Vertex {
 	glm::vec2 pos;
 	glm::vec3 color;
+	glm::vec2 tex_coord;
 
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription{};
@@ -35,8 +36,8 @@ struct Vertex {
 		return bindingDescription;
 	}
 
-	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 		
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
@@ -47,6 +48,11 @@ struct Vertex {
 		attributeDescriptions[1].location = 1;
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(Vertex, tex_coord);
 
 		return attributeDescriptions;
 	}
@@ -119,8 +125,6 @@ private:
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swap_chain;
 	VkRenderPass render_pass;
-	VkDescriptorSetLayout descriptor_set_layout;
-	VkPipelineLayout pipeline_layout;
 	VkPipeline graphics_pipeline;
 	VkCommandPool command_pool;
 
@@ -129,7 +133,7 @@ private:
 	VkBuffer index_buffer;
 	VkDeviceMemory index_buffer_memory;
 
-	VkDescriptorPool descriptor_pool;
+	VkDescriptorPool compute_descriptor_pool;
 	std::vector<VkDescriptorSet> compute_descriptor_sets;
 
 	std::vector<VkBuffer> uniform_buffers;
@@ -180,10 +184,10 @@ private:
 	VkInstanceCreateInfo create_instance_info(Window *window, VkApplicationInfo& app_info);
 
 	const std::vector<Vertex> vertices = {
-		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+		{{-1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 	};
 	const std::vector<uint16_t> indices = {
 		0, 1, 2, 2, 3, 0
@@ -206,15 +210,21 @@ private:
 	void create_command_buffers();
 	void create_uniform_buffers();
 
-	void create_descriptor_pool();
-
-	void record_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	void create_sync_objects();
 	void update_uniform_buffer(uint32_t currentImage, float lastFrameTime);
 	void draw_frame(Window* window);
 	void recreate_swapchain(Window *window);
 	void cleanup_swapchain();
-	void create_descriptor_set_layout();
+
+	VkPipelineLayout graphics_pipeline_layout;
+	VkDescriptorPool graphics_descriptor_pool;
+	VkDescriptorSetLayout graphics_descriptor_set_layout;
+	std::vector<VkDescriptorSet> graphics_descriptor_sets;
+	void record_graphics_command_buffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+	void create_graphics_descriptor_pool();
+	void create_graphics_descriptor_set_layout();
+	void create_graphics_descriptor_sets();
+
 	void set_framebuffer_resized(bool isResized);
 	bool is_device_suitable(VkPhysicalDevice device);
 	bool check_device_extensions_support(VkPhysicalDevice device);
@@ -229,10 +239,34 @@ private:
 	void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	void copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
+	void create_compute_descriptor_pool();
 	void create_compute_buffer();
 	void create_compute_descriptor_set_layout();
 	void create_compute_descriptor_sets();
 	void record_compute_command_buffer(VkCommandBuffer commandBuffer);
 	void create_compute_command_buffers();
+
+	void create_image(uint32_t width, uint32_t height,
+		VkFormat format, VkImageTiling tiling,
+		VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
+		VkImage& image, VkDeviceMemory& imageMemory
+	);
+
+	std::vector<VkImage> screen_images;
+	std::vector<VkDeviceMemory> screen_image_memories;
+	std::vector<VkBuffer> pixels_buffers;
+	std::vector<VkDeviceMemory> pixels_buffer_memories;
+	std::vector<VkImageView> screen_image_views;
+	std::vector<VkSampler> screen_image_samplers;
+
+	void create_screen_images();
+	void create_screen_image_buffers();
+	void create_screen_image_views();
+	void create_screen_image_sampler();
+	VkImageView create_image_view(VkImage image, VkFormat format);
+	VkCommandBuffer begin_single_time_commands();
+	void end_single_time_commands(VkCommandBuffer commandBuffer);
+	void transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 };
 
