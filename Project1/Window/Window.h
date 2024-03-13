@@ -19,12 +19,14 @@ private:
 	GLFWwindow* _window = nullptr;
 	Vulkan* vulkan = nullptr;
 
-	float lastFrameTime = 0.0f;
-	double lastTime = 0.0f;
+	double last_time, current_time;
+	int num_frames;
+	float frame_time;
 
 	void glfw_clean_up();
 	void draw();
 	void on_resize();
+	void calculate_fps();
 	std::pair<uint32_t, const char**> get_required_from_vulkan_extensions();
 };
 

@@ -16,7 +16,6 @@ Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT)
     glfwSetFramebufferSizeCallback(this->_window, framebufferResizeCallback);
 
     this->vulkan = new Vulkan(this);
-    this->lastTime = glfwGetTime();
 }
 
 Window::~Window()
@@ -30,10 +29,7 @@ void Window::run()
     while (!glfwWindowShouldClose(this->_window)) {
         glfwPollEvents();
         this->draw();
-
-        double currentTime = glfwGetTime();
-        this->lastFrameTime = (currentTime - this->lastTime) * 1000.0f;
-        this->lastTime = currentTime;
+        this->calculate_fps();
     }
 
     vkDeviceWaitIdle(this->vulkan->logical_device);
@@ -55,6 +51,27 @@ void Window::draw()
 void Window::on_resize()
 {
     this->vulkan->set_framebuffer_resized(true);
+}
+
+void Window::calculate_fps()
+{
+    this->current_time = glfwGetTime();
+    double delta = this->current_time - this->last_time;
+
+    if (delta >= 1) {
+        int framerate = std::max(1, int(this->num_frames / delta));
+        std::stringstream title;
+
+        title << "Running at " << framerate << " fps.";
+
+        glfwSetWindowTitle(this->_window, title.str().c_str());
+
+        this->last_time = this->current_time;
+        this->num_frames = -1;
+        this->frame_time = float(1000.0 / framerate);
+    }
+
+    ++this->num_frames;
 }
 
 std::pair<uint32_t, const char**> Window::get_required_from_vulkan_extensions()
