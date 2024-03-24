@@ -190,7 +190,7 @@ void Scene::sceneChanged()
 
 void Scene::update(sf::RenderWindow &window, sf::Time time)
 {
-	this->getCamera()->update(window, time);
+	//this->getCamera()->update(time);
 }
 
 std::vector<std::shared_ptr<Object>>* Scene::getSceneObjects()

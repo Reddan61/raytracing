@@ -103,6 +103,7 @@ Vulkan::Vulkan(Window* window)
     this->create_graphics_pipe_line();
     
     //compute
+    this->create_camera_buffer(window);
     this->create_compute_descriptor_set_layout();
     this->create_compute_descriptor_pool();
     this->create_compute_descriptor_sets();
@@ -120,6 +121,9 @@ Vulkan::~Vulkan()
 {
     this->cleanup_swapchain();
     
+    vkDestroyBuffer(this->logical_device, this->camera_buffer, nullptr);
+    vkFreeMemory(this->logical_device, this->camera_buffer_memory, nullptr);
+
     for (size_t i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyImage(this->logical_device, this->screen_images[i], nullptr);
         vkFreeMemory(this->logical_device, this->screen_image_memories[i], nullptr);
@@ -613,9 +617,11 @@ void Vulkan::create_compute_command_buffers()
 
 void Vulkan::create_compute_descriptor_pool()
 {
-    std::array<VkDescriptorPoolSize, 1> poolSizes{};
+    std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -756,6 +762,8 @@ void Vulkan::draw_frame(Window *window)
 
     // Compute submission        
     vkWaitForFences(this->logical_device, 1, &compute_in_flight_fences[current_frame], VK_TRUE, UINT64_MAX);
+
+    this->update_camera_buffer(window);
 
     vkResetFences(this->logical_device, 1, &compute_in_flight_fences[current_frame]);
 
@@ -1050,6 +1058,28 @@ VkShaderModule Vulkan::create_shader_module(const std::vector<char>& code)
     }
 
     return shaderModule;
+}
+
+void Vulkan::create_camera_buffer(Window* window)
+{
+    VkDeviceSize bufferSize = sizeof(Camera::CameraVulkan);
+
+    this->create_buffer(
+        bufferSize, 
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+        this->camera_buffer, 
+        this->camera_buffer_memory
+    );
+
+    vkMapMemory(this->logical_device, camera_buffer_memory, 0, bufferSize, 0, &this->camera_buffer_mapped);
+}
+
+void Vulkan::update_camera_buffer(Window* window)
+{
+    Camera::CameraVulkan camera = window->camera->getBufferStruct();
+
+    memcpy(this->camera_buffer_mapped, &camera, sizeof(camera));
 }
 
 void Vulkan::set_framebuffer_resized(bool isResized)
@@ -1477,13 +1507,19 @@ void Vulkan::end_single_time_commands(VkCommandBuffer commandBuffer)
 
 void Vulkan::create_compute_descriptor_set_layout()
 {
-    std::array<VkDescriptorSetLayoutBinding, 1> layoutBindings{};
+    std::array<VkDescriptorSetLayoutBinding, 2> layoutBindings{};
 
     layoutBindings[0].binding = 0;
     layoutBindings[0].descriptorCount = 1;
     layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
     layoutBindings[0].pImmutableSamplers = nullptr;
     layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+    layoutBindings[1].binding = 1;
+    layoutBindings[1].descriptorCount = 1;
+    layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layoutBindings[1].pImmutableSamplers = nullptr;
+    layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -1510,12 +1546,11 @@ void Vulkan::create_compute_descriptor_sets() {
     }
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+        std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
         imageInfo.imageView = this->screen_image_views[i];
-        //imageInfo.sampler = this->screen_image_samplers[i];
 
         descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[0].dstSet = this->compute_descriptor_sets[i];
@@ -1524,6 +1559,19 @@ void Vulkan::create_compute_descriptor_sets() {
         descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         descriptorWrites[0].descriptorCount = 1;
         descriptorWrites[0].pImageInfo = &imageInfo;
+
+        VkDescriptorBufferInfo cameraBufferInfo{};
+        cameraBufferInfo.buffer = this->camera_buffer;
+        cameraBufferInfo.offset = 0;
+        cameraBufferInfo.range = sizeof(Camera::CameraVulkan);
+
+        descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[1].dstSet = this->compute_descriptor_sets[i];
+        descriptorWrites[1].dstBinding = 1;
+        descriptorWrites[1].dstArrayElement = 0;
+        descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[1].descriptorCount = 1;
+        descriptorWrites[1].pBufferInfo = &cameraBufferInfo;
 
         vkUpdateDescriptorSets(
             this->logical_device,

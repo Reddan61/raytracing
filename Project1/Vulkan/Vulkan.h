@@ -99,6 +99,13 @@ private:
 	VkPipelineLayout compute_pipeline_layout;
 	VkPipeline compute_pipeline;
 	std::vector<VkCommandBuffer> compute_command_buffers;
+
+	VkBuffer camera_buffer;
+	VkDeviceMemory camera_buffer_memory;
+	void* camera_buffer_mapped;
+	void create_camera_buffer(Window* window);
+	void update_camera_buffer(Window* window);
+
 	void create_compute_descriptor_pool();
 	void create_compute_descriptor_set_layout();
 	void create_compute_descriptor_sets();

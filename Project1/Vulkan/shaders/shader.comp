@@ -1,6 +1,10 @@
 #version 450
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 layout (binding = 0, rgba8) uniform image2D colorBuffer;
+layout (binding = 1) uniform CameraBuffer {
+    vec3 position;
+    mat4 rotation;
+} camera;
 
 #define INFINITY 1.0f / 0.0f
 #define EPSILON 0.001f
@@ -35,10 +39,6 @@ struct Scene {
     PointLight point_light;
 };
 
-struct Camera {
-    vec3 position;
-};
-
 struct Ray {
     vec3 origin;
     vec3 direction;
@@ -49,13 +49,10 @@ struct Hit {
     Sphere sphere;
 };
 
-vec3 perPixel(int x, int y, Camera camera, Scene scene);
+vec3 perPixel(int x, int y, Scene scene);
 
 void main() {
     ivec2 screen_pos = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
-
-    Camera camera;
-    camera.position = vec3(0.0);
 
     Sphere sphere1;
     sphere1.center = vec3(0.0, 0.0, -6.0);
@@ -76,7 +73,7 @@ void main() {
     sphere3.radius = 1.0;
     sphere3.color = vec3(0.0, 0.0, 1.0);
     sphere3.specular = -1;
-    sphere3.reflective = 0.0;
+    sphere3.reflective = 0.5;
 
     Sphere sphere4;
     sphere4.center = vec3(0, -5001.0, 0.0);
@@ -100,7 +97,7 @@ void main() {
     scene.point_light = point_light;
     scene.ambient_light = ambient_light;
 
-    vec3 color = perPixel(screen_pos.x, screen_pos.y, camera, scene);
+    vec3 color = perPixel(screen_pos.x, screen_pos.y, scene);
 
     imageStore(colorBuffer, screen_pos, vec4(color, 1.0));
 }
@@ -123,7 +120,7 @@ vec2 getSphereHit(Ray ray, Sphere sphere) {
     return vec2(INFINITY, INFINITY);
 }
 
-Ray getRay(float x, float y, Camera camera)
+Ray getRay(float x, float y)
 {
     ivec2 screen_size = imageSize(colorBuffer);
     float fov = 60;
@@ -140,9 +137,11 @@ Ray getRay(float x, float y, Camera camera)
     direction.x = direction.x * aspect_ratio * tan_half_fov;
     direction.y = direction.y * tan_half_fov;
 
+    vec4 rotated_direction = camera.rotation * vec4(direction, 1.0f);
+
     Ray ray;
     ray.origin = camera.position;
-    ray.direction = normalize(direction);
+    ray.direction = normalize(rotated_direction.xyz);
 
     return ray;
 }
@@ -270,9 +269,9 @@ vec3 traceRay(
     return final_color;
 }
 
-vec3 getPixelColor(float x, float y, Camera camera, Scene scene)
+vec3 getPixelColor(float x, float y, Scene scene)
 {
-    Ray ray = getRay(x, y, camera);
+    Ray ray = getRay(x, y);
 
     vec3 color = traceRay(ray, scene, 1, INFINITY, 3);
 
@@ -280,7 +279,7 @@ vec3 getPixelColor(float x, float y, Camera camera, Scene scene)
 }
 
 
-vec3 perPixel(int x, int y, Camera camera, Scene scene)
+vec3 perPixel(int x, int y, Scene scene)
 {
 	// anti-aliasing
 	float aa = 16.f;
@@ -296,7 +295,7 @@ vec3 perPixel(int x, int y, Camera camera, Scene scene)
 		float u = pixel_start_x + (partial_aa * i);
 		float v = pixel_start_y + (partial_aa * i);
 
-		color = color + getPixelColor(u, v, camera, scene);
+		color = color + getPixelColor(u, v, scene);
 	}
 
 	pixel_start_x = x + 0.5f;
@@ -305,7 +304,7 @@ vec3 perPixel(int x, int y, Camera camera, Scene scene)
 	    float u = pixel_start_x - (partial_aa * i);
 		float v = pixel_start_y + (partial_aa * i);
 
-		color = color + getPixelColor(u, v, camera, scene);
+		color = color + getPixelColor(u, v, scene);
 	}
 
 	vec3 result_ns = color / aa;

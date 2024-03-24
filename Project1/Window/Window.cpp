@@ -5,12 +5,12 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     app->on_resize();
 }
 
-Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT)
+Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT, Camera* camera)
 {
+    this->camera = camera;
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
     this->_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan window", nullptr, nullptr);
     glfwSetWindowUserPointer(this->_window, this);
     glfwSetFramebufferSizeCallback(this->_window, framebufferResizeCallback);
@@ -26,10 +26,33 @@ Window::~Window()
 
 void Window::run()
 {
+    double lastTime = 0.0;
+    double currentTime = 0.0;
+    double lastFPSUpdateTime = 0.0;
+    double delta = 0;
+    unsigned int counter = 0;
+
     while (!glfwWindowShouldClose(this->_window)) {
+        currentTime = glfwGetTime();
+        delta = currentTime - lastTime;
+        lastTime = currentTime;
+        counter++;
+
+        this->camera->keyCheck(this->_window, delta);
+
+        if (currentTime - lastFPSUpdateTime >= 1.0) {
+            std::string fps = std::to_string(counter);
+            std::string ms = std::to_string(1000 / counter);
+            std::string title = "FPS = " + fps + ", ms = " + ms;
+
+            glfwSetWindowTitle(this->_window, title.c_str());
+            counter = 0;
+            lastFPSUpdateTime += 1.0f;
+        }
+
         glfwPollEvents();
+
         this->draw();
-        this->calculate_fps();
     }
 
     vkDeviceWaitIdle(this->vulkan->logical_device);
@@ -51,27 +74,6 @@ void Window::draw()
 void Window::on_resize()
 {
     this->vulkan->set_framebuffer_resized(true);
-}
-
-void Window::calculate_fps()
-{
-    this->current_time = glfwGetTime();
-    double delta = this->current_time - this->last_time;
-
-    if (delta >= 1) {
-        int framerate = std::max(1, int(this->num_frames / delta));
-        std::stringstream title;
-
-        title << "Running at " << framerate << " fps.";
-
-        glfwSetWindowTitle(this->_window, title.str().c_str());
-
-        this->last_time = this->current_time;
-        this->num_frames = -1;
-        this->frame_time = float(1000.0 / framerate);
-    }
-
-    ++this->num_frames;
 }
 
 std::pair<uint32_t, const char**> Window::get_required_from_vulkan_extensions()

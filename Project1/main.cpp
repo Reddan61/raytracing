@@ -27,7 +27,9 @@ int main() {
     const uint32_t WIDTH = 1200;
     const uint32_t HEIGHT = 800;
 
-    Window window = Window(WIDTH, HEIGHT);
+    Camera *camera = new Camera(2.f, 1.0f, 0);
+
+    Window window = Window(WIDTH, HEIGHT, camera);
 
     window.run();
 
