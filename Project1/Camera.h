@@ -23,7 +23,7 @@ public:
 	Camera(float x, float y, float z);
 	~Camera();
 
-	void update(double deltaTime);
+	void update(GLFWwindow* window, float delta);
 	void keyCheck(GLFWwindow* window, float delta);
 	glm::vec3 getPosition();
 	glm::mat4 getRotation();

@@ -1,6 +1,5 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <vector>
 #include <array>
@@ -10,12 +9,9 @@
 #include <algorithm>
 #include <fstream>
 #include <random>
-
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <chrono>
+
+#include "../Config.h"
 
 #include "../Window/Window.h"
 
@@ -106,9 +102,13 @@ private:
 	void create_camera_buffer(Window* window);
 	void update_camera_buffer(Window* window);
 
+	VkBuffer spheres_buffer;
+	VkDeviceMemory spheres_buffer_memory;
+	void create_spheres_buffer(Window* window);
+
 	void create_compute_descriptor_pool();
 	void create_compute_descriptor_set_layout();
-	void create_compute_descriptor_sets();
+	void create_compute_descriptor_sets(Window *window);
 	void record_compute_command_buffer(VkCommandBuffer commandBuffer);
 	void create_compute_command_buffers();
 	void create_compute_pipe_line();

@@ -27,9 +27,9 @@ glm::vec3 Camera::getPosition()
 	return this->position;
 }
 
-void Camera::update(double deltaTime)
+void Camera::update(GLFWwindow* window, float delta)
 {
-	//this->keyCheck(deltaTime);
+	this->keyCheck(window, delta);
 }
 
 glm::mat4 Camera::getRotation()

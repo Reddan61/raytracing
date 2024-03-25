@@ -183,6 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C99\structs.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="Utils\Color\Color.h" />
     <ClInclude Include="Light\AmbientLight.h" />
     <ClInclude Include="Camera.h" />

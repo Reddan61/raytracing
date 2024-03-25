@@ -1,6 +1,6 @@
 #include "Sphere.h"
 
-Sphere::Sphere(const Vector3d& const position, const Color& const color, int radius, float specular, float reflective)
+Sphere::Sphere(const glm::vec3& const position, const glm::vec3& const color, float radius, float specular, float reflective)
 {
 	this->position = position;
 	this->color = color;
@@ -9,61 +9,37 @@ Sphere::Sphere(const Vector3d& const position, const Color& const color, int rad
 	this->reflective = reflective;
 }
 
-Vector3d Sphere::getNormal(const Vector3d const& point, const Vector3d const& direction)
+glm::vec3 Sphere::getNormal(const glm::vec3 const& point, const glm::vec3 const& direction)
 {
-	Vector3d normal = point - this->position;
-	normal = normal.normalize();
+	glm::vec3 normal = point - this->position;
+	normal = glm::normalize(normal);
 
 	return normal;
 }
 
-void Sphere::update(sf::RenderWindow& window, sf::Time time)
+void Sphere::update(GLFWwindow* window, float delta)
 {
 }
 
-void Sphere::changePosition(const Vector3d const& position)
+void Sphere::changePosition(const glm::vec3 const& position)
 {
 	this->position = position;
 }
 
-Vector3d Sphere::getPosition()
+glm::vec3 Sphere::getPosition()
 {
 	return this->position;
 }
 
-C99Sphere Sphere::getC99()
+Sphere::SphereShader Sphere::getSphereShader()
 {
-	C99Sphere result;
+	SphereShader sphere;
 
-	result.color = this->color.getC99();
-	result.position = this->getPosition().getC99();
-	result.radius = this->radius;
-	result.reflective = this->getReflective();
-	result.specular = this->getSpecular();
+	sphere.center = glm::vec4(this->position, 1.0f);
+	sphere.color = glm::vec4(this->color, 1.0f);
+	sphere.radius = this->radius;
+	sphere.reflective = this->reflective;
+	sphere.specular = this->specular;
 
-	return result;
-}
-
-void Sphere::render(sf::RenderWindow& window)
-{
-}
-
-Object::InsertRayValue Sphere::insertRay(Vector3d& cameraPosition, Vector3d& direction)
-{
-	auto oc = cameraPosition - this->position;
-
-	float a = Math::GetDotProduct(direction, direction);
-	float b = 2.f * Math::GetDotProduct(oc, direction);
-	float c = Math::GetDotProduct(oc, oc) - this->radius * this->radius;
-
-	float discriminant = b * b - 4.f * a * c;
-
-	if (discriminant < 0) {
-		return Object::InsertRayValue(Infinity, Infinity, nullptr);
-	}
-
-	float x1 = (-b + std::sqrt(discriminant)) / (2 * a);
-	float x2 = (-b - std::sqrt(discriminant)) / (2 * a);
-
-	return Object::InsertRayValue(x1, x2, this);
+	return sphere;
 }

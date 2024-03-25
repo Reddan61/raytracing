@@ -1,35 +1,36 @@
-//#define GLFW_INCLUDE_VULKAN
-//#include <GLFW/glfw3.h>
-
-//#define GLM_FORCE_RADIANS
-//#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-//#include <glm/vec4.hpp>
-//#include <glm/mat4x4.hpp>
-
 #include <iostream>
-#include <SFML/Graphics.hpp>
 #include <vector>
 #include "Scene.h"
 #include "Camera.h"
-#include "Render.h"
 #include "./Objects/Sphere/Sphere.h"
 #include "./Objects/Object.h"
 #include "./Objects/Triangle/Triangle.h"
 #include "Light/AmbientLight.h"
 #include "Light/DirectionalLight.h"
 #include "Light/PointLight.h"
-#include "ThreadPool/ThreadPool.h"
-#include "Utils.h"
-#include "./Utils/Color/Color.h"
 #include "./Window/Window.h"
 
 int main() {
     const uint32_t WIDTH = 1200;
     const uint32_t HEIGHT = 800;
 
-    Camera *camera = new Camera(2.f, 1.0f, 0);
+    Camera *camera = new Camera(2.0f, 1.0f, 0);
 
-    Window window = Window(WIDTH, HEIGHT, camera);
+    Scene* scene = new Scene(camera);
+
+    Sphere* sphere1 = new Sphere(glm::vec3(0.0, 0.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, -1.0f, 0.5f);
+    Sphere* sphere2 = new Sphere(glm::vec3(2.5, 0.0, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.5f);
+    Sphere* sphere3 = new Sphere(glm::vec3(-2.5, 0.0, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.5f);
+    Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, -1.0f, 0.5f);
+    Sphere* sphere5 = new Sphere(glm::vec3(0.0, 3.0f, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
+
+    scene->addSphere(sphere1);
+    scene->addSphere(sphere2);
+    scene->addSphere(sphere3);
+    scene->addSphere(sphere4);
+    scene->addSphere(sphere5);
+
+    Window window = Window(WIDTH, HEIGHT, scene);
 
     window.run();
 

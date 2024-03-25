@@ -5,9 +5,9 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     app->on_resize();
 }
 
-Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT, Camera* camera)
+Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT, Scene* scene)
 {
-    this->camera = camera;
+    this->scene = scene;
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -22,6 +22,7 @@ Window::~Window()
 {
     this->glfw_clean_up();
     delete this->vulkan;
+    delete this->scene;
 }
 
 void Window::run()
@@ -38,7 +39,7 @@ void Window::run()
         lastTime = currentTime;
         counter++;
 
-        this->camera->keyCheck(this->_window, delta);
+        this->scene->update(this->_window, delta);
 
         if (currentTime - lastFPSUpdateTime >= 1.0) {
             std::string fps = std::to_string(counter);

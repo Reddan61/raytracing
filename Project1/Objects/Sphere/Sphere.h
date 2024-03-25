@@ -1,27 +1,28 @@
 #pragma once
 #include <iostream>
+
 #include "../Object.h";
 #include "../../Math.h";
-#include "../../C99/structs.h"
 
 class Sphere : public Object
 {
 public:
-	Sphere(const Vector3d& const position, const Color& const color, int radius = 1, float specular = -1, float reflective = 0);
-	
-	Vector3d getNormal(const Vector3d const& point, const Vector3d const& direction) override;
+	// std140
+	struct SphereShader {
+		float radius, specular, reflective;
+		alignas(16) glm::vec4 center;
+		glm::vec4 color;
+	};
+	Sphere(const glm::vec3& const position, const glm::vec3& const color, float radius = 1.0f, float specular = -1.0f, float reflective = 0);
 
-	Object::InsertRayValue insertRay(Vector3d& cameraPosition, Vector3d& direction) override;
-	void update(sf::RenderWindow& window, sf::Time time) override;
-	void changePosition(const Vector3d const& position) override;
-	Vector3d getPosition();
+	void update(GLFWwindow* window, float delta) override;
+	void changePosition(const glm::vec3 const& position) override;
+	glm::vec3 getPosition();
+	glm::vec3 getNormal(const glm::vec3 const& point, const glm::vec3 const& direction) override;
 
-	C99Sphere getC99();
-
+	SphereShader getSphereShader();
 private:
-	int radius;
-	Vector3d position;
-
-	void render(sf::RenderWindow& window) override;
+	float radius;
+	glm::vec3 position;
 };
 

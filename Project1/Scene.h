@@ -11,10 +11,6 @@
 #include "Objects/Triangle/Triangle.h"
 #include "Objects/TriangleMesh/TriangleMesh.h"
 
-extern "C" {
-	#include "C99/structs.h"
-}
-
 class Scene
 {
 public:
@@ -30,13 +26,14 @@ public:
 	void addTriangle(Triangle* triangle);
 	void addMesh(TriangleMesh* mesh);
 
+	std::vector<Sphere::SphereShader> getBufferSpheres();
+	VkDeviceSize getBufferSphereSize();
+
 	void addAmbientLight(AmbientLight* light);
 	void addDirectionalLight(DirectionalLight* light);
 	void addPointLight(PointLight* light);
 
-	C99Scene* getGpuScene();
-
-	void update(sf::RenderWindow &window, sf::Time time);
+	void update(GLFWwindow* window, float delta);
 private:
 	std::vector<std::shared_ptr<Object>> *SceneObjects = nullptr;
 	std::vector<std::shared_ptr<Light>> *SceneLights = nullptr;
@@ -48,16 +45,8 @@ private:
 	std::shared_ptr<AmbientLight> ambientLight = nullptr;
 	std::vector<std::shared_ptr<PointLight>>* pointLights = nullptr;
 	std::vector<std::shared_ptr<DirectionalLight>>* directionalLights = nullptr;
-
-	C99Scene* gpu_scene = nullptr;
 	
 	Camera* camera = nullptr;
 	Sky* sky = nullptr;
-
-	void sceneChanged();
-	void createGpuScene();
-	void deleteGpuScene();
-
-	//void renderObjects(sf::RenderWindow &window, sf::Time time);
 };
 
