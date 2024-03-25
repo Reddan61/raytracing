@@ -49,7 +49,7 @@ void Scene::addMesh(TriangleMesh* mesh)
 	this->meshes->push_back(std::shared_ptr<TriangleMesh>(mesh));
 }
 
-std::vector<Sphere::SphereShader> Scene::getBufferSpheres()
+std::vector<Sphere::SphereShader> Scene::getSpheresBuffer()
 {
 	auto result = std::vector<Sphere::SphereShader>();
 
@@ -60,9 +60,25 @@ std::vector<Sphere::SphereShader> Scene::getBufferSpheres()
 	return result;
 }
 
-VkDeviceSize Scene::getBufferSphereSize()
+VkDeviceSize Scene::getSphereBufferSize()
 {
 	VkDeviceSize size = sizeof(Sphere::SphereShader) * this->spheres->size();
+
+	return size;
+}
+
+Scene::SceneShader Scene::getSceneBuffer()
+{
+	Scene::SceneShader result;
+
+	result.spheres_num = this->spheres->size();
+
+	return result;
+}
+
+VkDeviceSize Scene::getSceneBufferSize()
+{
+	VkDeviceSize size = sizeof(Scene::SceneShader);
 
 	return size;
 }

@@ -23,12 +23,16 @@ int main() {
     Sphere* sphere3 = new Sphere(glm::vec3(-2.5, 0.0, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.5f);
     Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, -1.0f, 0.5f);
     Sphere* sphere5 = new Sphere(glm::vec3(0.0, 3.0f, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
+    Sphere* sphere6 = new Sphere(glm::vec3(2.5f, 3.0f, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, -1.0f, 0.0f);
+    Sphere* sphere7 = new Sphere(glm::vec3(-2.5f, 3.0f, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.0f);
 
     scene->addSphere(sphere1);
     scene->addSphere(sphere2);
     scene->addSphere(sphere3);
     scene->addSphere(sphere4);
     scene->addSphere(sphere5);
+    scene->addSphere(sphere6);
+    scene->addSphere(sphere7);
 
     Window window = Window(WIDTH, HEIGHT, scene);
 

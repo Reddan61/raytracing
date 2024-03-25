@@ -14,6 +14,10 @@
 class Scene
 {
 public:
+	struct SceneShader {
+		int spheres_num;
+	};
+
 	Scene(Camera *camera);
 	~Scene();
 
@@ -26,8 +30,11 @@ public:
 	void addTriangle(Triangle* triangle);
 	void addMesh(TriangleMesh* mesh);
 
-	std::vector<Sphere::SphereShader> getBufferSpheres();
-	VkDeviceSize getBufferSphereSize();
+	std::vector<Sphere::SphereShader> getSpheresBuffer();
+	VkDeviceSize getSphereBufferSize();
+
+	Scene::SceneShader getSceneBuffer();
+	VkDeviceSize getSceneBufferSize();
 
 	void addAmbientLight(AmbientLight* light);
 	void addDirectionalLight(DirectionalLight* light);

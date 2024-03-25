@@ -105,6 +105,10 @@ private:
 	VkBuffer spheres_buffer;
 	VkDeviceMemory spheres_buffer_memory;
 	void create_spheres_buffer(Window* window);
+		
+	VkBuffer scene_buffer;
+	VkDeviceMemory scene_buffer_memory;
+	void create_scene_buffer(Window* window);
 
 	void create_compute_descriptor_pool();
 	void create_compute_descriptor_set_layout();
