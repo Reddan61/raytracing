@@ -39,17 +39,19 @@ struct Hit {
     Sphere sphere;
 };
 
-layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
-layout (binding = 0, rgba8) uniform image2D colorBuffer;
-layout (binding = 1) uniform CameraBuffer {
+struct Camera {
     vec3 position;
     mat4 rotation;
-} camera;
-layout (std140, binding = 2) readonly buffer SpheresBuffer {
+};
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+layout (binding = 0, rgba8) uniform image2D colorBuffer;
+layout (std140, binding = 1) readonly buffer SpheresBuffer {
     Sphere spheres[];
 };
-layout (binding = 3) uniform SceneBuffer {
+layout (binding = 2) uniform SceneBuffer {
     int spheres_num;
+    Camera camera;
 } scene;
 
 vec3 perPixel(int x, int y, Temp temp);
@@ -109,10 +111,10 @@ Ray getRay(float x, float y)
     direction.x = direction.x * aspect_ratio * tan_half_fov;
     direction.y = direction.y * tan_half_fov;
 
-    vec4 rotated_direction = camera.rotation * vec4(direction, 1.0f);
+    vec4 rotated_direction = scene.camera.rotation * vec4(direction, 1.0f);
 
     Ray ray;
-    ray.origin = camera.position;
+    ray.origin = scene.camera.position;
     ray.direction = normalize(rotated_direction.xyz);
 
     return ray;

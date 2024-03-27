@@ -72,6 +72,7 @@ Scene::SceneShader Scene::getSceneBuffer()
 	Scene::SceneShader result;
 
 	result.spheres_num = this->spheres->size();
+	result.camera = this->camera->getBufferStruct();
 
 	return result;
 }

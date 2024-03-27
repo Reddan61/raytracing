@@ -96,19 +96,15 @@ private:
 	VkPipeline compute_pipeline;
 	std::vector<VkCommandBuffer> compute_command_buffers;
 
-	VkBuffer camera_buffer;
-	VkDeviceMemory camera_buffer_memory;
-	void* camera_buffer_mapped;
-	void create_camera_buffer(Window* window);
-	void update_camera_buffer(Window* window);
-
 	VkBuffer spheres_buffer;
 	VkDeviceMemory spheres_buffer_memory;
 	void create_spheres_buffer(Window* window);
 		
 	VkBuffer scene_buffer;
 	VkDeviceMemory scene_buffer_memory;
+	void* scene_buffer_mapped;
 	void create_scene_buffer(Window* window);
+	void update_scene_buffer(Window* window);
 
 	void create_compute_descriptor_pool();
 	void create_compute_descriptor_set_layout();

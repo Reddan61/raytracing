@@ -16,6 +16,7 @@ class Scene
 public:
 	struct SceneShader {
 		int spheres_num;
+		Camera::CameraVulkan camera;
 	};
 
 	Scene(Camera *camera);
