@@ -15,7 +15,7 @@ class Scene
 {
 public:
 	struct SceneShader {
-		int spheres_num;
+		int spheres_num, point_ligts_num;
 		Camera::CameraVulkan camera;
 	};
 
@@ -33,6 +33,9 @@ public:
 
 	std::vector<Sphere::SphereShader> getSpheresBuffer();
 	VkDeviceSize getSphereBufferSize();
+
+	std::vector<PointLight::PointLightShader> getPointLightsBuffer();
+	VkDeviceSize getPointLightsBufferSize();
 
 	Scene::SceneShader getSceneBuffer();
 	VkDeviceSize getSceneBufferSize();

@@ -1,10 +1,10 @@
 #include "PointLight.h"
 
-PointLight::PointLight(const Vector3d& const position, float bright): Light(position, bright)
+PointLight::PointLight(const glm::vec3& const position, float bright): Light(position, bright)
 {
 }
 
-Vector3d PointLight::getLightVector(Vector3d& point)
+glm::vec3 PointLight::getLightVector(glm::vec3& point)
 {
 	return this->getPosition() - point;
 }
@@ -19,13 +19,18 @@ float PointLight::getMaxT()
 	return 1.0f;
 }
 
-C99PointLight PointLight::getC99()
+PointLight::PointLightShader PointLight::getPointLightBuffer()
 {
-	C99PointLight result;
+	PointLight::PointLightShader result;
 
 	result.bright = this->getBright();
 	result.maxT = this->getMaxT();
-	result.position = this->getPosition().getC99();
+	result.position = glm::vec4(this->getPosition(), 1.0f);
 
 	return result;
+}
+
+VkDeviceSize PointLight::getPointLightBufferSize()
+{
+	return sizeof(PointLight::PointLightShader);
 }

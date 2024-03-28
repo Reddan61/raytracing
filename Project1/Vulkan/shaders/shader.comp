@@ -22,12 +22,6 @@ struct Sphere {
     vec4 center;
     vec4 color;
 };
-// should be deleted
-struct Temp {
-    DirectionalLight direction_light;
-    AmbientLight ambient_light;
-    PointLight point_light;
-};
 
 struct Ray {
     vec3 origin;
@@ -50,28 +44,19 @@ layout (std140, binding = 1) readonly buffer SpheresBuffer {
     Sphere spheres[];
 };
 layout (binding = 2) uniform SceneBuffer {
-    int spheres_num;
+    int spheres_num, point_lights_num;
     Camera camera;
 } scene;
+layout (std140, binding = 3) readonly buffer PointLightsBuffer {
+    PointLight point_lights[];
+};
 
-vec3 perPixel(int x, int y, Temp temp);
+vec3 perPixel(int x, int y);
 
 void main() {
     ivec2 screen_pos = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
 
-    PointLight point_light;
-    point_light.bright = 0.6f;
-    point_light.position = vec3(0.0, 2.0, -6.0);
-    point_light.maxT = 1.0f;
-
-    AmbientLight ambient_light;
-    ambient_light.bright = 0.1f;
-
-    Temp temp;
-    temp.point_light = point_light;
-    temp.ambient_light = ambient_light;
-
-    vec3 color = perPixel(screen_pos.x, screen_pos.y, temp);
+    vec3 color = perPixel(screen_pos.x, screen_pos.y);
 
     imageStore(colorBuffer, screen_pos, vec4(color, 1.0));
 }
@@ -133,7 +118,7 @@ vec3 GetPointLightVector(vec3 point, PointLight light) {
     return normalize(light.position - point);
 }
 
-Hit getIntersection(Temp temp, Ray ray, float min_t, float max_t) {
+Hit getIntersection(Ray ray, float min_t, float max_t) {
 	Hit intersection;
     intersection.t1 = INFINITY;
     intersection.t2 = INFINITY;
@@ -159,17 +144,17 @@ Hit getIntersection(Temp temp, Ray ray, float min_t, float max_t) {
 }
 
 float ComputeLight(
-    Temp temp,
     vec3 point,
     vec3 normal,
     vec3 view,
     Sphere sphere
 ) {
-    float bright = temp.ambient_light.bright;
+    // float bright = temp.ambient_light.bright;
+    float bright = 0.1f;
     float length_n = length(normal);
     float length_v = length(view);
 
-    PointLight point_light = temp.point_light;
+    PointLight point_light = point_lights[0];
 
     vec3 lightVector = GetPointLightVector(point, point_light);
     float maxT = point_light.maxT;
@@ -178,7 +163,7 @@ float ComputeLight(
     Ray shadow_ray;
     shadow_ray.origin = point + EPSILON * normal;
     shadow_ray.direction = lightVector;
-    Hit shadow_blocker = getIntersection(temp, shadow_ray, EPSILON, maxT);
+    Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, maxT);
 
 	if (shadow_blocker.t1 != INFINITY && shadow_blocker.t2 != INFINITY) {
 		return bright;
@@ -206,7 +191,6 @@ float ComputeLight(
 
 vec3 traceRay(
     Ray ray,
-    Temp temp,
     float min_t,
     float max_t,
     int reflection_depth
@@ -215,7 +199,7 @@ vec3 traceRay(
     float reflection_intensity = 1.0;
 
     for (int i = 0; i < reflection_depth; i++) {
-        Hit intersection = getIntersection(temp, ray, min_t, max_t);
+        Hit intersection = getIntersection(ray, min_t, max_t);
 
         if (intersection.t1 == INFINITY || intersection.t2 == INFINITY) {
             final_color += reflection_intensity * getSkyColor(ray);
@@ -226,7 +210,7 @@ vec3 traceRay(
         vec3 normal = normalize(point - intersection.sphere.center.xyz);
         vec3 view = ray.direction * -1.0;
 
-        float lighting = ComputeLight(temp, point, normal, view, intersection.sphere);
+        float lighting = ComputeLight(point, normal, view, intersection.sphere);
         vec3 local_color = intersection.sphere.color.xyz * lighting;
 
         final_color += reflection_intensity * local_color;
@@ -243,17 +227,17 @@ vec3 traceRay(
     return final_color;
 }
 
-vec3 getPixelColor(float x, float y, Temp temp)
+vec3 getPixelColor(float x, float y)
 {
     Ray ray = getRay(x, y);
 
-    vec3 color = traceRay(ray, temp, 1, INFINITY, 3);
+    vec3 color = traceRay(ray, 1, INFINITY, 3);
 
     return color;
 }
 
 
-vec3 perPixel(int x, int y, Temp temp)
+vec3 perPixel(int x, int y)
 {
 	// anti-aliasing
 	float aa = 16.f;
@@ -269,7 +253,7 @@ vec3 perPixel(int x, int y, Temp temp)
 		float u = pixel_start_x + (partial_aa * i);
 		float v = pixel_start_y + (partial_aa * i);
 
-		color = color + getPixelColor(u, v, temp);
+		color = color + getPixelColor(u, v);
 	}
 
 	pixel_start_x = x + 0.5f;
@@ -278,7 +262,7 @@ vec3 perPixel(int x, int y, Temp temp)
 	    float u = pixel_start_x - (partial_aa * i);
 		float v = pixel_start_y + (partial_aa * i);
 
-		color = color + getPixelColor(u, v, temp);
+		color = color + getPixelColor(u, v);
 	}
 
 	vec3 result_ns = color / aa;

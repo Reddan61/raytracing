@@ -11,7 +11,7 @@ Scene::Scene(Camera *camera)
 	//this->meshes = new std::vector<std::shared_ptr<TriangleMesh>>;
 
 	//this->ambientLight = nullptr;
-	//this->pointLights = new std::vector<std::shared_ptr<PointLight>>;
+	this->pointLights = new std::vector<std::shared_ptr<PointLight>>;
 	//this->directionalLights = new std::vector<std::shared_ptr<DirectionalLight>>;
 
 	this->camera = camera;
@@ -26,7 +26,7 @@ Scene::~Scene()
 	/*delete this->triangles;
 	delete this->meshes;*/
 	//delete this->ambientLight;
-	//delete this->pointLights;
+	delete this->pointLights;
 	//delete this->directionalLights;
 	//delete this->sky;
 }
@@ -67,11 +67,30 @@ VkDeviceSize Scene::getSphereBufferSize()
 	return size;
 }
 
+std::vector<PointLight::PointLightShader> Scene::getPointLightsBuffer()
+{
+	auto result = std::vector<PointLight::PointLightShader>();
+
+	for (int i = 0; i < this->pointLights->size(); i++) {
+		result.push_back(this->pointLights->at(i).get()->getPointLightBuffer());
+	}
+
+	return result;
+}
+
+VkDeviceSize Scene::getPointLightsBufferSize()
+{
+	VkDeviceSize size = PointLight::getPointLightBufferSize() * this->pointLights->size();
+
+	return size;
+}
+
 Scene::SceneShader Scene::getSceneBuffer()
 {
 	Scene::SceneShader result;
 
 	result.spheres_num = this->spheres->size();
+	result.point_ligts_num = this->pointLights->size();
 	result.camera = this->camera->getBufferStruct();
 
 	return result;
@@ -99,7 +118,7 @@ void Scene::addDirectionalLight(DirectionalLight* light)
 void Scene::addPointLight(PointLight* light)
 {
 	this->pointLights->push_back(std::shared_ptr<PointLight>(light));
-	this->SceneLights->push_back(std::shared_ptr<Light>(light));
+	//this->SceneLights->push_back(std::shared_ptr<Light>(light));
 }
 
 

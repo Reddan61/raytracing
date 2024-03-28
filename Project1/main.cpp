@@ -24,7 +24,9 @@ int main() {
     Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, -1.0f, 0.5f);
     Sphere* sphere5 = new Sphere(glm::vec3(0.0, 3.0f, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
     Sphere* sphere6 = new Sphere(glm::vec3(2.5f, 3.0f, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, -1.0f, 0.0f);
-    Sphere* sphere7 = new Sphere(glm::vec3(-2.5f, 3.0f, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, 200.0f, 0.2f);
+    Sphere* sphere7 = new Sphere(glm::vec3(-2.5f, 3.0f, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.0f);
+
+    PointLight* pointLight1 = new PointLight(glm::vec3(0.0f, 5.0, -6.0), 0.6f);
 
     scene->addSphere(sphere1);
     scene->addSphere(sphere2);
@@ -33,6 +35,8 @@ int main() {
     scene->addSphere(sphere5);
     scene->addSphere(sphere6);
     scene->addSphere(sphere7);
+
+    scene->addPointLight(pointLight1);
 
     Window window = Window(WIDTH, HEIGHT, scene);
 

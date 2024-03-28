@@ -99,6 +99,10 @@ private:
 	VkBuffer spheres_buffer;
 	VkDeviceMemory spheres_buffer_memory;
 	void create_spheres_buffer(Window* window);
+
+	VkBuffer point_lights_buffer;
+	VkDeviceMemory point_lights_buffer_memory;
+	void create_point_lights_buffer(Window* window);
 		
 	VkBuffer scene_buffer;
 	VkDeviceMemory scene_buffer_memory;

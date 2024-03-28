@@ -1,10 +1,10 @@
 #include "AmbientLight.h"
 
-AmbientLight::AmbientLight(float bright) : Light(Vector3d(Infinity, Infinity, Infinity), bright)
+AmbientLight::AmbientLight(float bright) : Light(glm::vec3(0, 0, 0), bright)
 {
 }
 
-Vector3d AmbientLight::getLightVector(Vector3d& point)
+glm::vec3 AmbientLight::getLightVector(glm::vec3& point)
 {
 	return this->getPosition();
 }
@@ -16,14 +16,6 @@ bool AmbientLight::hasPosition()
 
 float AmbientLight::getMaxT()
 {
-	return Infinity;
-}
-
-C99AmbientLight* AmbientLight::getC99()
-{
-	C99AmbientLight *result = new C99AmbientLight;
-
-	result->bright = this->getBright();
-
-	return result;
+	//return Infinity;
+	return 0;
 }

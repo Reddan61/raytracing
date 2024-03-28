@@ -1,16 +1,21 @@
 #pragma once
 #include "Light.h"
-#include "../C99/structs.h"
 
 class PointLight : public Light
 {
 public:
-	PointLight(const Vector3d& const position, float bright);
+	// std140
+	struct PointLightShader {
+		float bright, maxT;
+		alignas(16) glm::vec4 position;
+	};
 
-	Vector3d getLightVector(Vector3d& point) override;
+	PointLight(const glm::vec3& const position, float bright);
+
+	glm::vec3 getLightVector(glm::vec3& point) override;
 	bool hasPosition() override;
 	float getMaxT() override;
-
-	C99PointLight getC99();
+	PointLightShader getPointLightBuffer();
+	static VkDeviceSize getPointLightBufferSize();
 };
 
