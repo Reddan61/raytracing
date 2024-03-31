@@ -14,7 +14,7 @@ struct DirectionalLight {
 
 struct PointLight {
     float bright, maxT;
-    vec3 position;
+    vec4 position;
 };
 
 struct Sphere {
@@ -29,7 +29,7 @@ struct Ray {
 };
 
 struct Hit {
-    float t1, t2;
+    float t;
     Sphere sphere;
 };
 
@@ -115,27 +115,24 @@ vec3 getSkyColor(Ray ray)
 }
 
 vec3 GetPointLightVector(vec3 point, PointLight light) {
-    return normalize(light.position - point);
+    return normalize(light.position.xyz - point);
 }
 
 Hit getIntersection(Ray ray, float min_t, float max_t) {
 	Hit intersection;
-    intersection.t1 = INFINITY;
-    intersection.t2 = INFINITY;
+    intersection.t = INFINITY;
 
 	for (int i = 0; i < scene.spheres_num; i++) {
 		Sphere sphere = spheres[i];
 
 		vec2 sphere_hit = getSphereHit(ray, sphere);
 
-		if (sphere_hit.x < intersection.t1 && min_t < sphere_hit.x && sphere_hit.x < max_t) {
-			intersection.t1 = sphere_hit.y;
-			intersection.t2 = sphere_hit.x;
+		if (sphere_hit.x < intersection.t && min_t < sphere_hit.x && sphere_hit.x < max_t) {
+			intersection.t = sphere_hit.x;
 			intersection.sphere = sphere;
 		}
-		if (sphere_hit.y < intersection.t2 && min_t < sphere_hit.y && sphere_hit.y < max_t) {
-			intersection.t2 = sphere_hit.x;
-			intersection.t1 = sphere_hit.y;
+		if (sphere_hit.y < intersection.t && min_t < sphere_hit.y && sphere_hit.y < max_t) {
+			intersection.t = sphere_hit.y;
 			intersection.sphere = sphere;
 		}
 	}
@@ -149,40 +146,40 @@ float ComputeLight(
     vec3 view,
     Sphere sphere
 ) {
-    // float bright = temp.ambient_light.bright;
-    float bright = 0.1f;
+    float bright = 0.0f;
     float length_n = length(normal);
     float length_v = length(view);
 
-    PointLight point_light = point_lights[0];
+    for (int i = 0; i < scene.point_lights_num; i++) {
+        PointLight point_light = point_lights[i];
 
-    vec3 lightVector = GetPointLightVector(point, point_light);
-    float maxT = point_light.maxT;
+        vec3 lightVector = GetPointLightVector(point, point_light);
 
-    // Shadow check
-    Ray shadow_ray;
-    shadow_ray.origin = point + EPSILON * normal;
-    shadow_ray.direction = lightVector;
-    Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, maxT);
+        // Shadow check
+        Ray shadow_ray;
+        shadow_ray.origin = point + EPSILON * normal;
+        shadow_ray.direction = lightVector;
+        Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, distance(point, point_light.position.xyz));
 
-	if (shadow_blocker.t1 != INFINITY && shadow_blocker.t2 != INFINITY) {
-		return bright;
-	}
+	    if (shadow_blocker.t != INFINITY) {
+		    continue;
+	    }
 
-    float n_dot_l = dot(normal, lightVector);
+        float n_dot_l = dot(normal, lightVector);
 
-    // Diffuse reflection
-    if (n_dot_l > 0) {
-        bright += point_light.bright * n_dot_l / (length_n * length(lightVector));
-    }
+        // Diffuse reflection
+        if (n_dot_l > 0) {
+            bright += point_light.bright * n_dot_l / (length_n * length(lightVector));
+        }
 
-    // Specular reflection.
-    if (sphere.specular != -1) {
-        vec3 vec_r = reflect(lightVector, normal);
-        float r_dot_v = dot(vec_r, view);
+        // Specular reflection.
+        if (sphere.specular != -1) {
+            vec3 vec_r = -reflect(lightVector, normal);
+            float r_dot_v = dot(vec_r, view);
 
-        if (r_dot_v > 0) {
-            bright += point_light.bright * pow(r_dot_v / (length(vec_r) * length_v), sphere.specular);
+            if (r_dot_v > 0) {
+                bright += point_light.bright * pow(r_dot_v / (length(vec_r) * length_v), sphere.specular);
+            }
         }
     }
 
@@ -201,21 +198,22 @@ vec3 traceRay(
     for (int i = 0; i < reflection_depth; i++) {
         Hit intersection = getIntersection(ray, min_t, max_t);
 
-        if (intersection.t1 == INFINITY || intersection.t2 == INFINITY) {
-            final_color += reflection_intensity * getSkyColor(ray);
+        if (intersection.t == INFINITY) {
+            // final_color += reflection_intensity * getSkyColor(ray);
+            final_color += reflection_intensity * vec3(0.0f, 0.0f, 0.0f);
             break;
         }
 
-        vec3 point = ray.origin + (ray.direction * intersection.t1);
+        vec3 point = ray.origin + (ray.direction * intersection.t);
         vec3 normal = normalize(point - intersection.sphere.center.xyz);
         vec3 view = ray.direction * -1.0;
 
         float lighting = ComputeLight(point, normal, view, intersection.sphere);
-        vec3 local_color = intersection.sphere.color.xyz * lighting;
+        vec3 local_color = lighting * intersection.sphere.color.xyz;
 
         final_color += reflection_intensity * local_color;
 
-       if (intersection.sphere.reflective > 0.0) {
+        if (intersection.sphere.reflective > 0.0f && lighting > 0.0f) {
             ray.origin = point + EPSILON * normal;
             ray.direction = normalize(reflect(ray.direction, normal));
             reflection_intensity *= intersection.sphere.reflective;
