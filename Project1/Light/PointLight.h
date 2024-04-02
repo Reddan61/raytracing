@@ -15,7 +15,7 @@ public:
 	glm::vec3 getLightVector(glm::vec3& point) override;
 	bool hasPosition() override;
 	float getMaxT() override;
-	PointLightShader getPointLightBuffer();
-	static VkDeviceSize getPointLightBufferSize();
+	PointLightShader getBuffer();
+	static VkDeviceSize getBufferSize();
 };
 

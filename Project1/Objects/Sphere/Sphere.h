@@ -20,7 +20,8 @@ public:
 	glm::vec3 getPosition();
 	glm::vec3 getNormal(const glm::vec3 const& point, const glm::vec3 const& direction) override;
 
-	SphereShader getSphereShader();
+	SphereShader getShader();
+	static VkDeviceSize getBufferSize();
 private:
 	float radius;
 	glm::vec3 position;

@@ -15,7 +15,7 @@ class Scene
 {
 public:
 	struct SceneShader {
-		int spheres_num, point_ligts_num;
+		int spheres_num, triangles_num, point_ligts_num;
 		Camera::CameraVulkan camera;
 	};
 
@@ -32,7 +32,10 @@ public:
 	void addMesh(TriangleMesh* mesh);
 
 	std::vector<Sphere::SphereShader> getSpheresBuffer();
-	VkDeviceSize getSphereBufferSize();
+	VkDeviceSize getSpheresBufferSize();
+	
+	std::vector<Triangle::TriangleShader> getTrianglesBuffer();
+	VkDeviceSize getTrianglesBufferSize();
 
 	std::vector<PointLight::PointLightShader> getPointLightsBuffer();
 	VkDeviceSize getPointLightsBufferSize();

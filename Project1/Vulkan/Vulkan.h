@@ -100,6 +100,10 @@ private:
 	VkDeviceMemory spheres_buffer_memory;
 	void create_spheres_buffer(Window* window);
 
+	VkBuffer triangles_buffer;
+	VkDeviceMemory triangles_buffer_memory;
+	void create_triangles_buffer(Window* window);
+
 	VkBuffer point_lights_buffer;
 	VkDeviceMemory point_lights_buffer_memory;
 	void create_point_lights_buffer(Window* window);

@@ -2,6 +2,7 @@
 
 #define INFINITY 1.0f / 0.0f
 #define EPSILON 0.001f
+#define TRIANGLES_NUM 1
 
 struct AmbientLight {
     float bright;
@@ -23,6 +24,13 @@ struct Sphere {
     vec4 color;
 };
 
+struct Triangle {
+    bool single_side;
+    float specular, reflective;
+    vec4 A,B,C;
+    vec4 color;
+};
+
 struct Ray {
     vec3 origin;
     vec3 direction;
@@ -30,7 +38,9 @@ struct Ray {
 
 struct Hit {
     float t;
+    bool is_triangle;
     Sphere sphere;
+    Triangle triangle;
 };
 
 struct Camera {
@@ -44,11 +54,14 @@ layout (std140, binding = 1) readonly buffer SpheresBuffer {
     Sphere spheres[];
 };
 layout (binding = 2) uniform SceneBuffer {
-    int spheres_num, point_lights_num;
+    int spheres_num, triangles_num, point_lights_num;
     Camera camera;
 } scene;
 layout (std140, binding = 3) readonly buffer PointLightsBuffer {
     PointLight point_lights[];
+};
+layout (std140, binding = 4) readonly buffer TrianglesBuffer {
+    Triangle triangles[];
 };
 
 vec3 perPixel(int x, int y);
@@ -75,6 +88,43 @@ vec2 getSphereHit(Ray ray, Sphere sphere) {
 
         return vec2(x1, x2);
     }
+
+    return vec2(INFINITY, INFINITY);
+}
+
+vec2 getTriangleHit(Ray ray, Triangle triangle) {
+    vec3 e1 = (triangle.B - triangle.A).xyz;
+    vec3 e2 = (triangle.C - triangle.A).xyz;
+
+    vec3 pvec = cross(ray.direction, e2);
+    float det = dot(e1, pvec);
+
+    if (triangle.single_side && det < EPSILON) {
+        return vec2(INFINITY, INFINITY);
+    }
+    else if (det < EPSILON && det > -EPSILON) {
+        return vec2(INFINITY, INFINITY);
+    }
+
+    float inv_det = 1.0f / det;
+
+    vec3 tvec = ray.origin - triangle.A.xyz;
+    float v = inv_det * dot(tvec, pvec);
+
+    if (v < 0.0f || v > 1.0f) {
+        return vec2(INFINITY, INFINITY);
+    }
+
+    vec3 qvec = cross(tvec, e1);
+    float w = inv_det * dot(ray.direction, qvec);
+
+    if (w < 0.0f || w + v > 1.0f) {
+        return vec2(INFINITY, INFINITY);
+    }
+
+    float t = inv_det * dot(e2, qvec);
+
+    if (t > EPSILON) return vec2(t, t);
 
     return vec2(INFINITY, INFINITY);
 }
@@ -121,6 +171,7 @@ vec3 GetPointLightVector(vec3 point, PointLight light) {
 Hit getIntersection(Ray ray, float min_t, float max_t) {
 	Hit intersection;
     intersection.t = INFINITY;
+    intersection.is_triangle = false;
 
 	for (int i = 0; i < scene.spheres_num; i++) {
 		Sphere sphere = spheres[i];
@@ -137,14 +188,44 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
 		}
 	}
 
+    for (int i = 0; i < scene.triangles_num; i++) {
+		Triangle triangle = triangles[i];
+
+		vec2 triangle_hit = getTriangleHit(ray, triangle);
+
+		if (triangle_hit.x < intersection.t && min_t < triangle_hit.x && triangle_hit.x < max_t) {
+			intersection.t = triangle_hit.x;
+			intersection.triangle = triangle;
+            intersection.is_triangle = true;
+		}
+		if (triangle_hit.y < intersection.t && min_t < triangle_hit.y && triangle_hit.y < max_t) {
+			intersection.t = triangle_hit.y;
+			intersection.triangle = triangle;
+            intersection.is_triangle = true;
+		}
+	}
+
 	return intersection;
+}
+
+vec3 getSphereNormal(vec3 point, Sphere sphere) {
+    return normalize(point - sphere.center.xyz);
+}
+
+vec3 getTriangleNormal(Triangle triangle) {
+    vec4 AB = triangle.B - triangle.A;
+    vec4 AC = triangle.C - triangle.A;
+
+    vec3 normal = normalize(cross(AB.xyz, AC.xyz));
+
+    return normal;
 }
 
 float ComputeLight(
     vec3 point,
     vec3 normal,
     vec3 view,
-    Sphere sphere
+    Hit intersection
 ) {
     float bright = 0.0f;
     float length_n = length(normal);
@@ -173,12 +254,20 @@ float ComputeLight(
         }
 
         // Specular reflection.
-        if (sphere.specular != -1) {
+        float specular;
+
+        if (!intersection.is_triangle) {
+            specular = intersection.sphere.specular;
+        } else {
+            specular = intersection.triangle.specular;
+        }
+
+        if (specular != -1) {
             vec3 vec_r = -reflect(lightVector, normal);
             float r_dot_v = dot(vec_r, view);
 
             if (r_dot_v > 0) {
-                bright += point_light.bright * pow(r_dot_v / (length(vec_r) * length_v), sphere.specular);
+                bright += point_light.bright * pow(r_dot_v / (length(vec_r) * length_v), specular);
             }
         }
     }
@@ -205,18 +294,39 @@ vec3 traceRay(
         }
 
         vec3 point = ray.origin + (ray.direction * intersection.t);
-        vec3 normal = normalize(point - intersection.sphere.center.xyz);
+        vec3 normal;
+
+        if (!intersection.is_triangle) {
+            normal = getSphereNormal(point, intersection.sphere);
+        } else {
+            normal = getTriangleNormal(intersection.triangle);
+        }
+
         vec3 view = ray.direction * -1.0;
 
-        float lighting = ComputeLight(point, normal, view, intersection.sphere);
+        float lighting = ComputeLight(point, normal, view, intersection);
         vec3 local_color = lighting * intersection.sphere.color.xyz;
+
+        if (!intersection.is_triangle) {
+            local_color = lighting * intersection.sphere.color.xyz;
+        } else {
+            local_color = lighting * intersection.triangle.color.xyz;
+        }
 
         final_color += reflection_intensity * local_color;
 
-        if (intersection.sphere.reflective > 0.0f && lighting > 0.0f) {
+        float reflective;
+
+        if (!intersection.is_triangle) {
+            reflective = intersection.sphere.reflective;
+        } else {
+            reflective = intersection.triangle.reflective;
+        }
+
+        if (reflective > 0.0f && lighting > 0.0f) {
             ray.origin = point + EPSILON * normal;
             ray.direction = normalize(reflect(ray.direction, normal));
-            reflection_intensity *= intersection.sphere.reflective;
+            reflection_intensity *= reflective;
         } else {
             break;
         }

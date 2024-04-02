@@ -33,44 +33,24 @@ glm::vec3 Triangle::getNormal(const glm::vec3 const& point, const glm::vec3 cons
     return normal;
 }
 
-//Object::InsertRayValue Triangle::insertRay(Vector3d& cameraPosition, Vector3d& direction)
-//{
-//    Vector3d e1 = this->B - this->A;
-//    Vector3d e2 = this->C - this->A;
-//
-//    Vector3d pvec = Math::GetCrossProduct(direction, e2);
-//    float det = Math::GetDotProduct(e1, pvec);
-//
-//
-//    if (this->isSingleSide && det < Epsilon) {
-//        return Object::InsertRayValue(Infinity, Infinity, nullptr);
-//    }
-//    else if (det < Epsilon && det > -Epsilon) {
-//        return Object::InsertRayValue(Infinity, Infinity, nullptr);
-//    }
-//
-//    float inv_det = 1.0f / det;
-//
-//    Vector3d tvec = cameraPosition - this->A;
-//    float v = inv_det * Math::GetDotProduct(tvec, pvec);
-//
-//    if (v < 0.0f || v > 1.0f) {
-//        return Object::InsertRayValue(Infinity, Infinity, nullptr);
-//    }
-//
-//    Vector3d qvec = Math::GetCrossProduct(tvec, e1);
-//    float w = inv_det * Math::GetDotProduct(direction, qvec);
-//
-//    if (w < 0.0f || w + v > 1.0f) {
-//        return Object::InsertRayValue(Infinity, Infinity, nullptr);
-//    }
-//
-//    float t = inv_det * Math::GetDotProduct(e2, qvec);
-//
-//    if (t > Epsilon) return Object::InsertRayValue(t, t, this);
-//
-//    return Object::InsertRayValue(Infinity, Infinity, nullptr);
-//}
+Triangle::TriangleShader Triangle::getShader()
+{
+    TriangleShader result;
+    result.A = glm::vec4(this->A, 1.0f);
+    result.B = glm::vec4(this->B, 1.0f);
+    result.C = glm::vec4(this->C, 1.0f);
+    result.color = glm::vec4(this->getColor(), 1.0f);
+    result.reflective = this->getReflective();
+    result.specular = this->getSpecular();
+    result.single_side = this->isSingleSide;
+
+    return result;
+}
+
+VkDeviceSize Triangle::getBufferSize()
+{
+    return sizeof(Triangle::TriangleShader);
+}
 
 void Triangle::changePosition(const glm::vec3 const& position)
 {

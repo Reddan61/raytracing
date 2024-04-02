@@ -31,7 +31,7 @@ glm::vec3 Sphere::getPosition()
 	return this->position;
 }
 
-Sphere::SphereShader Sphere::getSphereShader()
+Sphere::SphereShader Sphere::getShader()
 {
 	SphereShader sphere;
 
@@ -42,4 +42,9 @@ Sphere::SphereShader Sphere::getSphereShader()
 	sphere.specular = this->specular;
 
 	return sphere;
+}
+
+VkDeviceSize Sphere::getBufferSize()
+{
+	return sizeof(Sphere::SphereShader);
 }

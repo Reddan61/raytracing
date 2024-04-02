@@ -19,7 +19,7 @@ float PointLight::getMaxT()
 	return 1.0f;
 }
 
-PointLight::PointLightShader PointLight::getPointLightBuffer()
+PointLight::PointLightShader PointLight::getBuffer()
 {
 	PointLight::PointLightShader result;
 
@@ -30,7 +30,7 @@ PointLight::PointLightShader PointLight::getPointLightBuffer()
 	return result;
 }
 
-VkDeviceSize PointLight::getPointLightBufferSize()
+VkDeviceSize PointLight::getBufferSize()
 {
 	return sizeof(PointLight::PointLightShader);
 }
