@@ -18,10 +18,10 @@ int main() {
 
     Scene* scene = new Scene(camera);
 
-    Sphere* sphere1 = new Sphere(glm::vec3(0.0, 1.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, 500, 0.0f);
+    Sphere* sphere1 = new Sphere(glm::vec3(0.0, 1.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, 0.2f, 0.0f);
     Sphere* sphere2 = new Sphere(glm::vec3(2.5, 0.0, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.5f);
     Sphere* sphere3 = new Sphere(glm::vec3(-2.5, 0.0, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
-    Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, 1000.0f, 1.0f);
+    Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, 0.2f, 1.0f);
     Sphere* sphere5 = new Sphere(glm::vec3(0.0, 3.0f, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
     Sphere* sphere6 = new Sphere(glm::vec3(2.5f, 3.0f, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, -1.0f, 0.0f);
     Sphere* sphere7 = new Sphere(glm::vec3(-2.5f, 3.0f, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.0f);
@@ -31,7 +31,7 @@ int main() {
         glm::vec3(3.0f, 5.0f, -3.0f),
         glm::vec3(5.0f, 3.0f, -3.0f),
         glm::vec3(0.0f, 1.0f, 1.0f),
-        500.0f,
+        0.2f,
         1.0f
     );
     Triangle* triangle2 = new Triangle(
@@ -39,21 +39,21 @@ int main() {
         glm::vec3(3.0f, 5.0f, -3.0f),
         glm::vec3(1.0f, 3.0f, -3.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
-        500.0f,
+        0.2f,
         1.0f
     );
 
-    PointLight* pointLight1 = new PointLight(glm::vec3(2.0f, 2.0f, -6.0), 0.4f);
-    PointLight* pointLight2 = new PointLight(glm::vec3(-2.0f, 2.0f, -6.0), 0.4f);
+    PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 2.0f, -6.0), 0.4f, 128.0f);
+    PointLight* pointLight2 = new PointLight(glm::vec3(-4.0f, 2.0f, -6.0), 0.4f, 32.0f);
 
     scene->addSphere(sphere1);
     //scene->addSphere(sphere2);
     //scene->addSphere(sphere3);
     scene->addSphere(sphere4);
     //scene->addSphere(sphere5);
-    //scene->addSphere(sphere6);
-    //scene->addSphere(sphere7);
-    scene->addTriangle(triangle1);
+    /*scene->addSphere(sphere6);
+    scene->addSphere(sphere7);
+    scene->addTriangle(triangle1);*/
     scene->addTriangle(triangle2);
 
     scene->addPointLight(pointLight1);

@@ -1,6 +1,6 @@
 #include "DirectionalLight.h"
 
-DirectionalLight::DirectionalLight(const glm::vec3& const position, float bright) : Light(position, bright)
+DirectionalLight::DirectionalLight(const glm::vec3& const position, float bright, float shininess) : Light(position, bright, shininess)
 {
 }
 

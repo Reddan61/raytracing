@@ -1,6 +1,6 @@
 #include "AmbientLight.h"
 
-AmbientLight::AmbientLight(float bright) : Light(glm::vec3(0, 0, 0), bright)
+AmbientLight::AmbientLight(float bright) : Light(glm::vec3(0, 0, 0), bright, 0)
 {
 }
 

@@ -1,6 +1,6 @@
 #include "PointLight.h"
 
-PointLight::PointLight(const glm::vec3& const position, float bright): Light(position, bright)
+PointLight::PointLight(const glm::vec3& const position, float bright, float shininess): Light(position, bright, shininess)
 {
 }
 
@@ -25,6 +25,7 @@ PointLight::PointLightShader PointLight::getBuffer()
 
 	result.bright = this->getBright();
 	result.maxT = this->getMaxT();
+	result.shininess = this->getShininess();
 	result.position = glm::vec4(this->getPosition(), 1.0f);
 
 	return result;

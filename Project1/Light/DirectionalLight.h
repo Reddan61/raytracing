@@ -4,7 +4,7 @@
 class DirectionalLight : public Light
 {
 public:
-	DirectionalLight(const glm::vec3& const position, float bright);
+	DirectionalLight(const glm::vec3& const position, float bright, float shininess);
 
 	glm::vec3 getLightVector(glm::vec3& point) override;
 	bool hasPosition() override;

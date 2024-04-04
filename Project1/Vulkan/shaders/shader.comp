@@ -14,7 +14,7 @@ struct DirectionalLight {
 };
 
 struct PointLight {
-    float bright, maxT;
+    float bright, maxT, shininess;
     vec4 position;
 };
 
@@ -221,7 +221,27 @@ vec3 getTriangleNormal(Triangle triangle) {
     return normal;
 }
 
-float ComputeLight(
+bool getInShadow(
+    vec3 point,
+    vec3 normal,
+    vec3 lightVector,
+    PointLight point_light
+) {
+    vec3 color = vec3(0.0f);
+
+    Ray shadow_ray;
+    shadow_ray.origin = point + EPSILON * normal;
+    shadow_ray.direction = lightVector;
+    Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, distance(point, point_light.position.xyz));
+
+	if (shadow_blocker.t != INFINITY) {
+		return true;
+	}
+
+    return false;
+}
+
+vec3 ComputeLight(
     vec3 point,
     vec3 normal,
     vec3 view,
@@ -230,49 +250,45 @@ float ComputeLight(
     float bright = 0.0f;
     float length_n = length(normal);
     float length_v = length(view);
+    vec3 final_color = vec3(0.0f);
+    vec3 light_color = vec3(1.0f); 
+
+    vec3 obj_color;
+    float obj_specular;
+
+    if (!intersection.is_triangle) {
+        obj_color = intersection.sphere.color.xyz;
+        obj_specular = intersection.sphere.specular;
+    } else {
+        obj_color = intersection.triangle.color.xyz;
+        obj_specular = intersection.triangle.specular;
+    }
 
     for (int i = 0; i < scene.point_lights_num; i++) {
         PointLight point_light = point_lights[i];
 
         vec3 lightVector = GetPointLightVector(point, point_light);
 
-        // Shadow check
-        Ray shadow_ray;
-        shadow_ray.origin = point + EPSILON * normal;
-        shadow_ray.direction = lightVector;
-        Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, distance(point, point_light.position.xyz));
+        bool in_shadow = getInShadow(point, normal, lightVector, point_light);
 
-	    if (shadow_blocker.t != INFINITY) {
-		    continue;
-	    }
+        if (in_shadow) continue;
 
-        float n_dot_l = dot(normal, lightVector);
+        vec3 diffuse_color = obj_color * max(dot(normal, lightVector), 0.0f) * point_light.bright;
 
-        // Diffuse reflection
-        if (n_dot_l > 0) {
-            bright += point_light.bright * n_dot_l / (length_n * length(lightVector));
+        vec3 specular_color = vec3(0.0);
+
+        if (obj_specular != -1.0f) {
+            vec3 reflected = -reflect(lightVector, normal);
+            float r_dot_v = max(dot(reflected, view), 0.0f);
+            float specular_strength = pow(r_dot_v, point_light.shininess);
+
+            specular_color = obj_specular * specular_strength * light_color;
         }
 
-        // Specular reflection.
-        float specular;
-
-        if (!intersection.is_triangle) {
-            specular = intersection.sphere.specular;
-        } else {
-            specular = intersection.triangle.specular;
-        }
-
-        if (specular != -1) {
-            vec3 vec_r = -reflect(lightVector, normal);
-            float r_dot_v = dot(vec_r, view);
-
-            if (r_dot_v > 0) {
-                bright += point_light.bright * pow(r_dot_v / (length(vec_r) * length_v), specular);
-            }
-        }
+        final_color += diffuse_color + specular_color;
     }
 
-    return bright;
+    return final_color;
 }
 
 vec3 traceRay(
@@ -304,26 +320,18 @@ vec3 traceRay(
 
         vec3 view = ray.direction * -1.0;
 
-        float lighting = ComputeLight(point, normal, view, intersection);
-        vec3 local_color = lighting * intersection.sphere.color.xyz;
-
-        if (!intersection.is_triangle) {
-            local_color = lighting * intersection.sphere.color.xyz;
-        } else {
-            local_color = lighting * intersection.triangle.color.xyz;
-        }
+        vec3 local_color = ComputeLight(point, normal, view, intersection);
 
         final_color += reflection_intensity * local_color;
 
         float reflective;
-
         if (!intersection.is_triangle) {
             reflective = intersection.sphere.reflective;
         } else {
             reflective = intersection.triangle.reflective;
         }
 
-        if (reflective > 0.0f && lighting > 0.0f) {
+        if (reflective > 0.0f) {
             ray.origin = point + EPSILON * normal;
             ray.direction = normalize(reflect(ray.direction, normal));
             reflection_intensity *= reflective;
