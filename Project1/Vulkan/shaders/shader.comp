@@ -54,7 +54,7 @@ layout (std140, binding = 1) readonly buffer SpheresBuffer {
     Sphere spheres[];
 };
 layout (binding = 2) uniform SceneBuffer {
-    int spheres_num, triangles_num, point_lights_num;
+    int spheres_num, triangles_num, point_lights_num, aa;
     Camera camera;
 } scene;
 layout (std140, binding = 3) readonly buffer PointLightsBuffer {
@@ -221,24 +221,43 @@ vec3 getTriangleNormal(Triangle triangle) {
     return normal;
 }
 
-bool getInShadow(
+const float light_size = 0.025;
+const vec3 offsets[8] = {
+  vec3(-light_size, -light_size, -light_size),
+  vec3(light_size, -light_size, -light_size),
+  vec3(light_size, light_size, -light_size),
+  vec3(-light_size, light_size, -light_size),
+  vec3(-light_size, -light_size, light_size),
+  vec3(light_size, -light_size, light_size),
+  vec3(light_size, light_size, light_size),
+  vec3(-light_size, light_size, light_size)
+};
+
+float getShadow(
     vec3 point,
     vec3 normal,
-    vec3 lightVector,
     PointLight point_light
 ) {
-    vec3 color = vec3(0.0f);
+    float intensity = 0.0f;
 
-    Ray shadow_ray;
-    shadow_ray.origin = point + EPSILON * normal;
-    shadow_ray.direction = lightVector;
-    Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, distance(point, point_light.position.xyz));
+    for(int i = 0; i < 8; i++) {
+        vec3 light_point = point + offsets[i];
 
-	if (shadow_blocker.t != INFINITY) {
-		return true;
-	}
+        vec3 light_vector = GetPointLightVector(light_point, point_light);
 
-    return false;
+        Ray shadow_ray;
+        shadow_ray.origin = point + EPSILON * normal;
+        shadow_ray.direction = light_vector;
+        Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, distance(light_point, point_light.position.xyz));
+	    
+        if (shadow_blocker.t != INFINITY) {
+		    intensity += 1.0f;
+	    }
+    }
+
+    intensity /= 8;
+
+    return intensity;
 }
 
 vec3 ComputeLight(
@@ -269,11 +288,9 @@ vec3 ComputeLight(
 
         vec3 lightVector = GetPointLightVector(point, point_light);
 
-        bool in_shadow = getInShadow(point, normal, lightVector, point_light);
+        float shadow_intensity = getShadow(point, normal, point_light);
 
-        if (in_shadow) continue;
-
-        vec3 diffuse_color = obj_color * max(dot(normal, lightVector), 0.0f) * point_light.bright;
+        vec3 diffuse_color = light_color * max(dot(normal, lightVector), 0.0f) * point_light.bright;
 
         vec3 specular_color = vec3(0.0);
 
@@ -285,7 +302,7 @@ vec3 ComputeLight(
             specular_color = obj_specular * specular_strength * light_color;
         }
 
-        final_color += diffuse_color + specular_color;
+        final_color += (1.0 - shadow_intensity) * (diffuse_color + specular_color) * obj_color;
     }
 
     return final_color;
@@ -356,8 +373,7 @@ vec3 getPixelColor(float x, float y)
 vec3 perPixel(int x, int y)
 {
 	// anti-aliasing
-	float aa = 16.f;
-	float half_aa = aa / 2;
+	float half_aa = scene.aa / 2.0f;
 	float partial_aa = 1.f / half_aa;
 
     vec3 color = vec3(0.0f);
@@ -381,7 +397,7 @@ vec3 perPixel(int x, int y)
 		color = color + getPixelColor(u, v);
 	}
 
-	vec3 result_ns = color / aa;
+	vec3 result_ns = color / scene.aa;
 
     return result_ns;
 }

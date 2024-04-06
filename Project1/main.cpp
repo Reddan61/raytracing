@@ -17,6 +17,7 @@ int main() {
     Camera *camera = new Camera(2.0f, 1.0f, 0);
 
     Scene* scene = new Scene(camera);
+    scene->setAA(16);
 
     Sphere* sphere1 = new Sphere(glm::vec3(0.0, 1.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, 0.2f, 0.0f);
     Sphere* sphere2 = new Sphere(glm::vec3(2.5, 0.0, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.5f);
@@ -41,6 +42,14 @@ int main() {
         glm::vec3(0.0f, 1.0f, 0.0f),
         0.2f,
         1.0f
+    ); 
+    Triangle* triangle3 = new Triangle(
+        glm::vec3(-1.0f, 5.0f, -3.0f),
+        glm::vec3(3.0f, 8.0f, -4.0f),
+        glm::vec3(3.0f, 5.0f, -3.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        0.2f,
+        1.0f
     );
 
     PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 2.0f, -6.0), 0.4f, 128.0f);
@@ -52,9 +61,10 @@ int main() {
     scene->addSphere(sphere4);
     //scene->addSphere(sphere5);
     /*scene->addSphere(sphere6);
-    scene->addSphere(sphere7);
-    scene->addTriangle(triangle1);*/
-    scene->addTriangle(triangle2);
+    scene->addSphere(sphere7);*/
+    scene->addTriangle(triangle1);
+    //scene->addTriangle(triangle2);
+    //scene->addTriangle(triangle3);
 
     scene->addPointLight(pointLight1);
     scene->addPointLight(pointLight2);

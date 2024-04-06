@@ -107,6 +107,7 @@ Scene::SceneShader Scene::getSceneBuffer()
 {
 	Scene::SceneShader result;
 
+	result.aa = this->aa;
 	result.spheres_num = this->spheres->size();
 	result.triangles_num = this->triangles->size();
 	result.point_ligts_num = this->pointLights->size();
@@ -138,6 +139,11 @@ void Scene::addPointLight(PointLight* light)
 {
 	this->pointLights->push_back(std::shared_ptr<PointLight>(light));
 	//this->SceneLights->push_back(std::shared_ptr<Light>(light));
+}
+
+void Scene::setAA(int num)
+{
+	this->aa = num;
 }
 
 

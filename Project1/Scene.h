@@ -15,7 +15,7 @@ class Scene
 {
 public:
 	struct SceneShader {
-		int spheres_num, triangles_num, point_ligts_num;
+		int spheres_num, triangles_num, point_ligts_num, aa;
 		Camera::CameraVulkan camera;
 	};
 
@@ -47,6 +47,8 @@ public:
 	void addDirectionalLight(DirectionalLight* light);
 	void addPointLight(PointLight* light);
 
+	void setAA(int num);
+
 	void update(GLFWwindow* window, float delta);
 private:
 	std::vector<std::shared_ptr<Object>> *SceneObjects = nullptr;
@@ -62,5 +64,7 @@ private:
 	
 	Camera* camera = nullptr;
 	Sky* sky = nullptr;
+
+	int aa = 2;
 };
 
