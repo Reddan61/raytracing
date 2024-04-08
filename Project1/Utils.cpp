@@ -2,67 +2,67 @@
 
 TriangleMesh* Utils::LoadCustomFormatFile(const std::string const& filename)
 {
-    //std::ifstream ifs;
+    std::ifstream ifs;
 
-    //try {
-    //    ifs.open(filename);
+    try {
+        ifs.open(filename);
 
-    //    if (ifs.fail()) throw;
+        if (ifs.fail()) throw;
 
-    //    std::stringstream ss;
+        std::stringstream ss;
 
-    //    ss << ifs.rdbuf();
+        ss << ifs.rdbuf();
 
-    //    uint32_t numFaces;
+        uint32_t numFaces;
 
-    //    ss >> numFaces;
+        ss >> numFaces;
 
-    //    std::unique_ptr<uint32_t[]> faceIndex(new uint32_t[numFaces]);
+        std::unique_ptr<uint32_t[]> faceIndex(new uint32_t[numFaces]);
 
-    //    uint32_t vertsIndexArraySize = 0;
-    //    // reading face index array
-    //    for (uint32_t i = 0; i < numFaces; ++i) {
-    //        ss >> faceIndex[i];
-    //        vertsIndexArraySize += faceIndex[i];
-    //    }
+        uint32_t vertsIndexArraySize = 0;
+        // reading face index array
+        for (uint32_t i = 0; i < numFaces; ++i) {
+            ss >> faceIndex[i];
+            vertsIndexArraySize += faceIndex[i];
+        }
 
-    //    std::unique_ptr<uint32_t[]> vertsIndex(new uint32_t[vertsIndexArraySize]);
-    //    uint32_t vertsArraySize = 0;
+        std::unique_ptr<uint32_t[]> vertsIndex(new uint32_t[vertsIndexArraySize]);
+        uint32_t vertsArraySize = 0;
 
-    //    // reading vertex index array
-    //    for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
-    //        ss >> vertsIndex[i];
-    //        if (vertsIndex[i] > vertsArraySize) vertsArraySize = vertsIndex[i];
-    //    }
+        // reading vertex index array
+        for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
+            ss >> vertsIndex[i];
+            if (vertsIndex[i] > vertsArraySize) vertsArraySize = vertsIndex[i];
+        }
 
-    //    vertsArraySize += 1;
+        vertsArraySize += 1;
 
-    //    // reading vertices
-    //    std::unique_ptr<Vector3d[]> verts(new Vector3d[vertsArraySize]);
+        // reading vertices
+        std::unique_ptr<glm::vec3[]> verts(new glm::vec3[vertsArraySize]);
 
-    //    for (uint32_t i = 0; i < vertsArraySize; ++i) {
-    //        ss >> verts[i].x >> verts[i].y >> verts[i].z;
-    //    }
+        for (uint32_t i = 0; i < vertsArraySize; ++i) {
+            ss >> verts[i].x >> verts[i].y >> verts[i].z;
+        }
 
-    //    // reading normals
-    //    std::unique_ptr<Vector3d[]> normals(new Vector3d[vertsIndexArraySize]);
+        // reading normals
+        std::unique_ptr<glm::vec3[]> normals(new glm::vec3[vertsIndexArraySize]);
 
-    //    for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
-    //        ss >> normals[i].x >> normals[i].y >> normals[i].z;
-    //    }
-    //    // reading st coordinates
-    //    std::unique_ptr<sf::Vector2f[]> st(new sf::Vector2f[vertsIndexArraySize]);
+        for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
+            ss >> normals[i].x >> normals[i].y >> normals[i].z;
+        }
+        // reading st coordinates
+        std::unique_ptr<glm::vec2[]> st(new glm::vec2[vertsIndexArraySize]);
 
-    //    for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
-    //        ss >> st[i].x >> st[i].y;
-    //    }
+        for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
+            ss >> st[i].x >> st[i].y;
+        }
 
-    //    return new TriangleMesh(numFaces, faceIndex, vertsIndex, verts, normals, st);
-    //}
-    //catch (...) {
-    //    ifs.close();
-    //}
-    //ifs.close();
+        return new TriangleMesh(numFaces, faceIndex, vertsIndex, verts);
+    }
+    catch (...) {
+        ifs.close();
+    }
+    ifs.close();
 
     return nullptr;
 }

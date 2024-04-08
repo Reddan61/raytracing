@@ -42,7 +42,7 @@ Triangle::TriangleShader Triangle::getShader()
     result.color = glm::vec4(this->getColor(), 1.0f);
     result.reflective = this->getReflective();
     result.specular = this->getSpecular();
-    result.single_side = this->isSingleSide;
+    result.single_side = this->isSingleSide ? 1 : 0;
 
     return result;
 }

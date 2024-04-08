@@ -65,6 +65,8 @@ private:
 	Camera* camera = nullptr;
 	Sky* sky = nullptr;
 
+	size_t getTrianglesNum();
+
 	int aa = 2;
 };
 

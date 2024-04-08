@@ -25,7 +25,7 @@ struct Sphere {
 };
 
 struct Triangle {
-    bool single_side;
+    int single_side;
     float specular, reflective;
     vec4 A,B,C;
     vec4 color;
@@ -99,7 +99,7 @@ vec2 getTriangleHit(Ray ray, Triangle triangle) {
     vec3 pvec = cross(ray.direction, e2);
     float det = dot(e1, pvec);
 
-    if (triangle.single_side && det < EPSILON) {
+    if (triangle.single_side == 1 && det < EPSILON) {
         return vec2(INFINITY, INFINITY);
     }
     else if (det < EPSILON && det > -EPSILON) {
@@ -267,8 +267,6 @@ vec3 ComputeLight(
     Hit intersection
 ) {
     float bright = 0.0f;
-    float length_n = length(normal);
-    float length_v = length(view);
     vec3 final_color = vec3(0.0f);
     vec3 light_color = vec3(1.0f); 
 

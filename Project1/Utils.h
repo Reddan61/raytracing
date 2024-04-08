@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <SFML/Graphics.hpp>
 #include "./Objects/TriangleMesh/TriangleMesh.h"
 
 namespace Utils {

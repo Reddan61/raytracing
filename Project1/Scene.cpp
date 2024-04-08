@@ -8,7 +8,7 @@ Scene::Scene(Camera *camera)
 
 	this->spheres = new std::vector<std::shared_ptr<Sphere>>;
 	this->triangles = new std::vector<std::shared_ptr<Triangle>>;
-	//this->meshes = new std::vector<std::shared_ptr<TriangleMesh>>;
+	this->meshes = new std::vector<std::shared_ptr<TriangleMesh>>;
 
 	//this->ambientLight = nullptr;
 	this->pointLights = new std::vector<std::shared_ptr<PointLight>>;
@@ -23,9 +23,9 @@ Scene::~Scene()
 	delete this->spheres;
 	delete this->triangles;
 	delete this->pointLights;
+	delete this->meshes;
 	//delete this->SceneObjects;
 	//delete this->SceneLights;
-	//delete this->meshes;
 	//delete this->ambientLight;
 	//delete this->directionalLights;
 	//delete this->sky;
@@ -33,19 +33,16 @@ Scene::~Scene()
 
 void Scene::addSphere(Sphere* sphere)
 {
-	//this->SceneObjects->push_back(std::shared_ptr<Object>(sphere));
 	this->spheres->push_back(std::shared_ptr<Sphere>(sphere));
 }
 
 void Scene::addTriangle(Triangle* triangle)
 {
-	//this->SceneObjects->push_back(std::shared_ptr<Object>(triangle));
 	this->triangles->push_back(std::shared_ptr<Triangle>(triangle));
 }
 
 void Scene::addMesh(TriangleMesh* mesh)
 {
-	//this->SceneObjects->push_back(std::shared_ptr<Object>(mesh));
 	this->meshes->push_back(std::shared_ptr<TriangleMesh>(mesh));
 }
 
@@ -71,16 +68,26 @@ std::vector<Triangle::TriangleShader> Scene::getTrianglesBuffer()
 {
 	auto result = std::vector<Triangle::TriangleShader>();
 
+	result.reserve(this->getTrianglesNum());
+
 	for (int i = 0; i < this->triangles->size(); i++) {
 		result.push_back(this->triangles->at(i).get()->getShader());
 	}
+
+	for (int i = 0; i < this->meshes->size(); i++) {
+		auto polygons = this->meshes->at(i).get()->getPolygons();
+
+		for (int j = 0; j < polygons->size(); j++) {
+			result.push_back(polygons->at(j)->getShader());
+		}
+	} 
 
 	return result;
 }
 
 VkDeviceSize Scene::getTrianglesBufferSize()
 {
-	VkDeviceSize size = Triangle::getBufferSize() * this->triangles->size();
+	VkDeviceSize size = Triangle::getBufferSize() * this->getTrianglesNum();
 
 	return size;
 }
@@ -109,7 +116,7 @@ Scene::SceneShader Scene::getSceneBuffer()
 
 	result.aa = this->aa;
 	result.spheres_num = this->spheres->size();
-	result.triangles_num = this->triangles->size();
+	result.triangles_num = this->getTrianglesNum();
 	result.point_ligts_num = this->pointLights->size();
 	result.camera = this->camera->getBufferStruct();
 
@@ -150,6 +157,17 @@ void Scene::setAA(int num)
 void Scene::update(GLFWwindow* window, float delta)
 {
 	this->camera->update(window, delta);
+}
+
+size_t Scene::getTrianglesNum()
+{
+	size_t result = this->triangles->size();
+
+	for (int i = 0; i < this->meshes->size(); i++) {
+		result += this->meshes->at(i).get()->getPolygonsSize();
+	}
+
+	return result;
 }
 
 std::vector<std::shared_ptr<Object>>* Scene::getSceneObjects()

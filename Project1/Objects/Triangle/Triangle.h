@@ -6,7 +6,7 @@ class Triangle : public Object
 public:
 	// std140
 	struct TriangleShader {
-		bool single_side;
+		int single_side;
 		float specular, reflective;
 		alignas(16) glm::vec4 A, B, C;
 		glm::vec4 color;
