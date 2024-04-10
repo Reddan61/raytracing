@@ -23,7 +23,7 @@ int main() {
     Sphere* sphere1 = new Sphere(glm::vec3(0.0, 1.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, 0.2f, 0.0f);
     Sphere* sphere2 = new Sphere(glm::vec3(2.5, 0.0, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.5f);
     Sphere* sphere3 = new Sphere(glm::vec3(-2.5, 0.0, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
-    Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, 0.2f, 1.0f);
+    Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, 0.2f, 0.0f);
     Sphere* sphere5 = new Sphere(glm::vec3(0.0, 3.0f, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
     Sphere* sphere6 = new Sphere(glm::vec3(2.5f, 3.0f, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, -1.0f, 0.0f);
     Sphere* sphere7 = new Sphere(glm::vec3(-2.5f, 3.0f, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.0f);
@@ -85,14 +85,18 @@ int main() {
         0.0f
     );
 
-    TriangleMesh* cube = Utils::LoadCustomFormatFile("cube.txt");
-	cube->changePosition(glm::vec3(2, 1, -8));
+ //   TriangleMesh* cube = Utils::LoadCustomFormatFile("cube.txt");
+	//cube->changePosition(glm::vec3(2, 1, -8));
+
+    TriangleMesh* sus = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
+    sus->changePosition(glm::vec3(2.0f, 0.0f, -3.0f));
 
     PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 2.0f, -6.0), 0.4f, 128.0f);
     PointLight* pointLight2 = new PointLight(glm::vec3(-4.0f, 2.0f, -6.0), 0.4f, 32.0f);
     PointLight* pointLight3 = new PointLight(glm::vec3(-4.0f, 4.0f, 3.0f), 0.4f, 32.0f);
     PointLight* pointLight4 = new PointLight(glm::vec3(-2.0f, 3.0f, -7.0f), 0.4f, 128.0f);
     PointLight* pointLight5 = new PointLight(glm::vec3(2.0f, 1.0f, -10.0f), 0.4f, 128.0f);
+    PointLight* pointLight6 = new PointLight(glm::vec3(0.0f, 0.0f, 1.0f), 0.4f, 128.0f);
 
     //scene->addSphere(sphere1);
     //scene->addSphere(sphere2);
@@ -104,17 +108,18 @@ int main() {
     scene->addTriangle(triangle1);
     //scene->addTriangle(triangle2);
     //scene->addTriangle(triangle3);
-    scene->addTriangle(triangle4);
-    scene->addTriangle(triangle5);
-    scene->addTriangle(triangle6);
-    scene->addTriangle(triangle7);
-    scene->addMesh(cube);
+    //scene->addTriangle(triangle4);
+    //scene->addTriangle(triangle5);
+    //scene->addTriangle(triangle6);
+    //scene->addTriangle(triangle7);
+    scene->addMesh(sus);
 
     scene->addPointLight(pointLight1);
     scene->addPointLight(pointLight2);
     scene->addPointLight(pointLight3);
     scene->addPointLight(pointLight4);
     scene->addPointLight(pointLight5);
+    scene->addPointLight(pointLight6);
 
     Window window = Window(WIDTH, HEIGHT, scene);
 

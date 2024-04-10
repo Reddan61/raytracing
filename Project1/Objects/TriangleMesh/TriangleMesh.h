@@ -7,10 +7,7 @@
 class TriangleMesh : public Object {
 public:
 	TriangleMesh(
-		uint32_t numFaces, 
-		const std::unique_ptr<uint32_t[]> const &faceIndex,
-		const std::unique_ptr<uint32_t[]> const &vertsIndex,
-		const std::unique_ptr<glm::vec3[]> const &verts
+		std::vector<Triangle*>* triangles
 	);
 	~TriangleMesh();
 

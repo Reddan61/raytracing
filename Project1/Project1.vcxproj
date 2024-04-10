@@ -136,17 +136,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Utils\Color\Color.cpp" />
     <ClCompile Include="Light\AmbientLight.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Light\DirectionalLight.cpp" />
     <ClCompile Include="Light\Light.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Math.cpp" />
-    <ClCompile Include="Utils\Matrix\Matrix4d.cpp" />
-    <ClCompile Include="Utils\Matrix\Matrix3d.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
-    <ClCompile Include="Pixel.cpp" />
     <ClCompile Include="Light\PointLight.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -157,18 +152,10 @@
     <ClCompile Include="Objects\Triangle\Triangle.cpp" />
     <ClCompile Include="Objects\TriangleMesh\TriangleMesh.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="Utils\Vector\Vector4d.cpp" />
-    <ClCompile Include="Utils\Vector\Vector3d.cpp" />
-    <ClCompile Include="Viewport.cpp" />
     <ClCompile Include="Vulkan\Vulkan.cpp" />
     <ClCompile Include="Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Kernel\RayTracing.cl" />
-    <None Include="Kernel\utils\constructors.cl" />
-    <None Include="Kernel\utils\raytracing.cl" />
-    <None Include="Kernel\utils\structs.cl" />
-    <None Include="Kernel\utils\utils.cl" />
     <None Include="openal32.dll" />
     <None Include="sfml-audio-2.dll" />
     <None Include="sfml-audio-d-2.dll" />
@@ -182,18 +169,12 @@
     <None Include="sfml-window-d-2.dll" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C99\structs.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="Utils\Color\Color.h" />
     <ClInclude Include="Light\AmbientLight.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Light\DirectionalLight.h" />
     <ClInclude Include="Light\Light.h" />
-    <ClInclude Include="Math.h" />
-    <ClInclude Include="Utils\Matrix\Matrix4d.h" />
-    <ClInclude Include="Utils\Matrix\Matrix3d.h" />
     <ClInclude Include="Objects\Object.h" />
-    <ClInclude Include="Pixel.h" />
     <ClInclude Include="Light\PointLight.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Scene.h" />
@@ -204,9 +185,6 @@
     <ClInclude Include="Objects\Triangle\Triangle.h" />
     <ClInclude Include="Objects\TriangleMesh\TriangleMesh.h" />
     <ClInclude Include="Utils.h" />
-    <ClInclude Include="Utils\Vector\Vector4d.h" />
-    <ClInclude Include="Utils\Vector\Vector3d.h" />
-    <ClInclude Include="Viewport.h" />
     <ClInclude Include="Vulkan\Vulkan.h" />
     <ClInclude Include="Window\Window.h" />
   </ItemGroup>

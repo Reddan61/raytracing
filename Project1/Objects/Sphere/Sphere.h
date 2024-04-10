@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "../Object.h";
-#include "../../Math.h";
 
 class Sphere : public Object
 {

@@ -1,15 +1,10 @@
 #include "TriangleMesh.h"
 
 TriangleMesh::TriangleMesh(
-    uint32_t numFaces,
-    // кол-во вершин на грани
-    const std::unique_ptr<uint32_t[]> const& faceIndex,
-    const std::unique_ptr<uint32_t[]> const& vertsIndex,
-    // вершины
-    const std::unique_ptr<glm::vec3[]> const& verts
+    std::vector<Triangle*>* triangles
 )
 {
-    this->specular = 0.2f;
+    /*this->specular = 0.2f;
     this->reflective = 0.0f;
 
     int offset = 0;
@@ -41,9 +36,9 @@ TriangleMesh::TriangleMesh(
 
         offset += faceIndex[i];
         polygonVert.clear();
-    }
+    }*/
 
-    this->polygons = result;
+    this->polygons = triangles;
 }
 
 TriangleMesh::~TriangleMesh()

@@ -27,19 +27,10 @@
     <ClCompile Include="Render.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Pixel.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Viewport.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="Objects\Sphere\Sphere.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Objects\Object.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Math.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Light\Light.cpp">
@@ -52,15 +43,6 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Light\DirectionalLight.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Matrix\Matrix3d.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Matrix\Matrix4d.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Vector\Vector4d.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="ThreadPool\ThreadPool.cpp">
@@ -79,12 +61,6 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Objects\TriangleMesh\TriangleMesh.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Color\Color.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\Vector\Vector3d.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Window\Window.cpp">
@@ -106,11 +82,6 @@
     <None Include="sfml-system-d-2.dll" />
     <None Include="sfml-window-2.dll" />
     <None Include="sfml-window-d-2.dll" />
-    <None Include="Kernel\RayTracing.cl" />
-    <None Include="Kernel\utils\utils.cl" />
-    <None Include="Kernel\utils\structs.cl" />
-    <None Include="Kernel\utils\raytracing.cl" />
-    <None Include="Kernel\utils\constructors.cl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scene.h">
@@ -125,16 +96,7 @@
     <ClInclude Include="Render.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Pixel.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Viewport.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="Objects\Sphere\Sphere.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Math.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Light\Light.h">
@@ -147,15 +109,6 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Light\DirectionalLight.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Matrix\Matrix3d.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Matrix\Matrix4d.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Vector\Vector4d.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="ThreadPool\ThreadPool.h">
@@ -174,15 +127,6 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Objects\TriangleMesh\TriangleMesh.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Color\Color.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\Vector\Vector3d.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="C99\structs.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Window\Window.h">

@@ -1,9 +1,5 @@
 #pragma once
-#include <SFML/Graphics.hpp>
 #include "./Objects/Object.h"
-#include "Math.h"
-#include "./Utils/Matrix/Matrix3d.h"
-#include "./Utils/Vector/Vector3d.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>

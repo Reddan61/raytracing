@@ -1,11 +1,9 @@
 #pragma once
-#include "../Utils/Color/Color.h"
-#include "../Utils/Vector/Vector3d.h"
-#include "../Math.h"
+#include "../Config.h"
 
 class Sky
 {
 public:
-	virtual Color getColor(const Vector3d &direction);
+	virtual glm::vec3 getColor(const glm::vec3&direction);
 };
 
