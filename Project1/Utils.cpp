@@ -108,7 +108,7 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
                 );
                 triangles->push_back(triangle);
             }
-            else {
+            else if(indices.size() == 4) {
                 Triangle* triangle1 = new Triangle(
                     vertices[indices[0]],
                     vertices[indices[1]],
@@ -125,7 +125,7 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
                 triangles->push_back(triangle2);
             }
         }
-    }
+    } 
 
     return triangles;
 }

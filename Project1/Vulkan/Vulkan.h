@@ -102,7 +102,13 @@ private:
 
 	VkBuffer triangles_buffer;
 	VkDeviceMemory triangles_buffer_memory;
-	void create_triangles_buffer(Window* window);
+	void create_triangles_buffer(Window* window);	
+	
+	VkBuffer bvhs_origins_buffer;
+	VkDeviceMemory bvhs_origins_buffer_memory;
+	VkBuffer bvhs_leaves_buffer;
+	VkDeviceMemory bvhs_leaves_buffer_memory;
+	void create_bvhs_buffers(Window* window);
 
 	VkBuffer point_lights_buffer;
 	VkDeviceMemory point_lights_buffer_memory;

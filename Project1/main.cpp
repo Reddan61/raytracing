@@ -85,18 +85,15 @@ int main() {
         0.0f
     );
 
- //   TriangleMesh* cube = Utils::LoadCustomFormatFile("cube.txt");
-	//cube->changePosition(glm::vec3(2, 1, -8));
-
     TriangleMesh* sus = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
-    sus->changePosition(glm::vec3(2.0f, 0.0f, -3.0f));
+    //sus->changePosition(glm::vec3(2.0f, 0.0f, -3.0f));
 
-    PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 2.0f, -6.0), 0.4f, 128.0f);
-    PointLight* pointLight2 = new PointLight(glm::vec3(-4.0f, 2.0f, -6.0), 0.4f, 32.0f);
-    PointLight* pointLight3 = new PointLight(glm::vec3(-4.0f, 4.0f, 3.0f), 0.4f, 32.0f);
-    PointLight* pointLight4 = new PointLight(glm::vec3(-2.0f, 3.0f, -7.0f), 0.4f, 128.0f);
-    PointLight* pointLight5 = new PointLight(glm::vec3(2.0f, 1.0f, -10.0f), 0.4f, 128.0f);
-    PointLight* pointLight6 = new PointLight(glm::vec3(0.0f, 0.0f, 1.0f), 0.4f, 128.0f);
+    PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 2.0f, 0.0), 0.4f, 128.0f);
+    PointLight* pointLight2 = new PointLight(glm::vec3(-4.0f, 2.0f, 0.0), 0.4f, 32.0f);
+    PointLight* pointLight3 = new PointLight(glm::vec3(0.0f, 0.0f, 0.0f), 0.4f, 32.0f);
+    PointLight* pointLight4 = new PointLight(glm::vec3(0.0f, 4.0f, 0.0f), 0.4f, 128.0f);
+    PointLight* pointLight5 = new PointLight(glm::vec3(0.0f, 2.0f, -3.0f), 0.4f, 128.0f);
+    PointLight* pointLight6 = new PointLight(glm::vec3(0.0f, 2.0f, 3.0f), 0.4f, 128.0f);
 
     //scene->addSphere(sphere1);
     //scene->addSphere(sphere2);
@@ -105,7 +102,7 @@ int main() {
     //scene->addSphere(sphere5);
     /*scene->addSphere(sphere6);
     scene->addSphere(sphere7);*/
-    scene->addTriangle(triangle1);
+    //scene->addTriangle(triangle1);
     //scene->addTriangle(triangle2);
     //scene->addTriangle(triangle3);
     //scene->addTriangle(triangle4);
@@ -113,6 +110,7 @@ int main() {
     //scene->addTriangle(triangle6);
     //scene->addTriangle(triangle7);
     scene->addMesh(sus);
+    //scene->addMesh(test);
 
     scene->addPointLight(pointLight1);
     scene->addPointLight(pointLight2);

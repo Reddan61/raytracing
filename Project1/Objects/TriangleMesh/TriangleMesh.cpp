@@ -4,41 +4,13 @@ TriangleMesh::TriangleMesh(
     std::vector<Triangle*>* triangles
 )
 {
-    /*this->specular = 0.2f;
-    this->reflective = 0.0f;
-
-    int offset = 0;
-    std::vector<glm::vec3> polygonVert;
-    polygonVert.reserve(3);
-
-    auto *result = new std::vector<Triangle*>;
-
-    for (int i = 0; i < numFaces; i++) {
-        for (int j = 0; j < faceIndex[i]; j++) {
-            int vertId = vertsIndex[offset + j];
-            glm::vec3 vert = verts[vertId];
-
-             polygonVert.push_back(vert);
-
-             if (polygonVert.size() == 3) {
-                 result->push_back(new Triangle(
-                     polygonVert[0],
-                     polygonVert[1],
-                     polygonVert[2],
-                     glm::vec3(1.0f, 0, 0),
-                     this->specular,
-                     this->reflective
-                 ));
-
-                 polygonVert.erase(polygonVert.begin() + 1);
-             }
-        }
-
-        offset += faceIndex[i];
-        polygonVert.clear();
-    }*/
+    std::sort(triangles->begin(), triangles->end(), [](Triangle* a, Triangle* b) {
+        return (a->getCentroid().y < b->getCentroid().y);
+    });
 
     this->polygons = triangles;
+
+    this->bvh = this->calculateBVH(*this->polygons, 5, 0, triangles->size());
 }
 
 TriangleMesh::~TriangleMesh()
@@ -78,4 +50,109 @@ void TriangleMesh::changePosition(const glm::vec3 const& position)
         
         triangle->changePosition(position);
     }
+}
+
+TriangleMesh::BVHBuffer TriangleMesh::getBVHBuffer(size_t bvhs_offset, size_t triangles_offset)
+{
+    TriangleMesh::BVHBuffer result;
+    size_t bvhs_nodes_index = bvhs_offset - 1;
+    this->getBVHBufferRecursive(result.bvhs, this->bvh, bvhs_nodes_index, triangles_offset);
+
+    result.origin = result.bvhs[0];
+    result.bvhs.erase(result.bvhs.begin());
+
+    return result;
+}
+
+void TriangleMesh::getBVHBufferRecursive(
+    std::vector<TriangleMesh::BVHShader>& result, 
+    BVHNode* node,
+    size_t& bvh_node_index,
+    size_t triangles_offset
+)
+{
+    TriangleMesh::BVHShader shader;
+    std::vector<TriangleMesh::BVHShader> inside;
+    shader.box = node->box;
+
+    if (node->left_node == nullptr && node->right_node == nullptr) {
+        shader.left_node = -1;
+        shader.right_node = -1;
+        shader.triangles_start = node->start + triangles_offset;
+        shader.triangles_end = node->end + triangles_offset;
+    }
+    else {
+        bvh_node_index += 1;
+        shader.left_node = bvh_node_index;
+        this->getBVHBufferRecursive(inside, node->left_node, bvh_node_index, triangles_offset);
+        bvh_node_index += 1;
+        shader.right_node = bvh_node_index;
+        this->getBVHBufferRecursive(inside, node->right_node, bvh_node_index, triangles_offset);
+    }
+
+    result.push_back(shader);
+    result.insert(result.end(), inside.begin(), inside.end());
+}
+
+TriangleMesh::BVHNode* TriangleMesh::calculateBVH(std::vector<Triangle*>& triangles, int depth, int start, int end)
+{
+    TriangleMesh::BVHNode* node = new TriangleMesh::BVHNode;
+
+    std::vector<Triangle*> triangles_splitted;
+
+    triangles_splitted.insert(
+        triangles_splitted.end(),
+        triangles.begin() + start,
+        triangles.begin() + end
+    );
+
+    Triangle::AABB aabb = triangles_splitted[0]->getAABB();
+
+    for (size_t i = 1; i < triangles_splitted.size(); i++) {
+        Triangle::AABB local_aabb = triangles_splitted[i]->getAABB();
+
+        aabb.min = glm::min(aabb.min, local_aabb.min);
+        aabb.max = glm::max(aabb.max, local_aabb.max);
+    }
+
+    node->box = aabb;
+
+    if (triangles_splitted.size() == 1 || depth <= 0) {
+        node->left_node = nullptr;
+        node->right_node = nullptr;
+        node->start = start;
+        node->end = end;
+    }
+    else {
+        auto splitted = this->splitTriangles(start, end);
+
+        node->left_node = this->calculateBVH(
+            triangles,
+            depth - 1, 
+            splitted.triangles_left_start, 
+            splitted.triangles_left_end
+        );
+        node->right_node = this->calculateBVH(
+            triangles,
+            depth - 1,
+            splitted.triangles_right_start,
+            splitted.triangles_right_end
+        );
+    }
+
+    return node;
+}
+
+TriangleMesh::Split TriangleMesh::splitTriangles(
+    int start, int end
+)
+{
+    TriangleMesh::Split result;
+    int center = (start + end) / 2;
+    result.triangles_left_start = start;
+    result.triangles_left_end = center;
+    result.triangles_right_start = center;
+    result.triangles_right_end = end;
+
+    return result;
 }

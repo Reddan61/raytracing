@@ -17,6 +17,8 @@ Triangle::Triangle(
     this->specular = specular;
     this->reflective = reflective;
     this->isSingleSide = false;
+
+    this->calculateCentroid();
 }
 
 Triangle::~Triangle()
@@ -57,6 +59,30 @@ void Triangle::changePosition(const glm::vec3 const& position)
     this->A = this->A + position;
     this->B = this->B + position;
     this->C = this->C + position;
+}
+
+glm::vec3 Triangle::getCentroid()
+{
+    return this->centroid;
+}
+
+void Triangle::calculateCentroid()
+{
+    this->centroid = (this->A + this->B + this->C) / 3.0f;
+}
+
+Triangle::AABB Triangle::getAABB()
+{
+    Triangle::AABB result;
+
+    result.min = result.max = glm::vec4(this->A, 1.0f);
+
+    result.min = glm::min(result.min, glm::vec4(this->B, 1.0f));
+    result.min = glm::min(result.min, glm::vec4(this->C, 1.0f));
+    result.max = glm::max(result.max, glm::vec4(this->B, 1.0f));
+    result.max = glm::max(result.max, glm::vec4(this->C, 1.0f));
+
+    return result;
 }
 
 void Triangle::update(GLFWwindow* window, float delta)

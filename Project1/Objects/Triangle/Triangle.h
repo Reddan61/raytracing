@@ -12,6 +12,10 @@ public:
 		glm::vec4 color;
 	};
 
+	struct AABB {
+		glm::vec4 min, max;
+	};
+
 	Triangle(
 		const glm::vec3 const & A, 
 		const glm::vec3 const & B, 
@@ -28,8 +32,13 @@ public:
 
 	void update(GLFWwindow* window, float delta) override;
 	void changePosition(const glm::vec3 const& position) override;
+	glm::vec3 getCentroid();
+	Triangle::AABB getAABB();
 private:
 	glm::vec3 A, B, C;
+	glm::vec3 centroid;
 	bool isSingleSide = false;
+
+	void calculateCentroid();
 };
 

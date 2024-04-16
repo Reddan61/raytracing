@@ -31,7 +31,7 @@ private:
 	glm::vec3 up;
 
 	const float SPEEDMOVE = 2;
-	const float SPEEDSENS = 0.5;
+	const float SPEEDSENS = 1.0f;
 	float rotationXAngle = 0;
 	float rotationYAngle = 0;
 

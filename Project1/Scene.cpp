@@ -7,7 +7,7 @@ Scene::Scene(Camera *camera)
 	//this->sky = new Sky();
 
 	this->spheres = new std::vector<std::shared_ptr<Sphere>>;
-	this->triangles = new std::vector<std::shared_ptr<Triangle>>;
+	//this->triangles = new std::vector<std::shared_ptr<Triangle>>;
 	this->meshes = new std::vector<std::shared_ptr<TriangleMesh>>;
 
 	//this->ambientLight = nullptr;
@@ -21,7 +21,7 @@ Scene::~Scene()
 {
 	delete this->camera;
 	delete this->spheres;
-	delete this->triangles;
+	//delete this->triangles;
 	delete this->pointLights;
 	delete this->meshes;
 	//delete this->SceneObjects;
@@ -36,10 +36,10 @@ void Scene::addSphere(Sphere* sphere)
 	this->spheres->push_back(std::shared_ptr<Sphere>(sphere));
 }
 
-void Scene::addTriangle(Triangle* triangle)
-{
-	this->triangles->push_back(std::shared_ptr<Triangle>(triangle));
-}
+//void Scene::addTriangle(Triangle* triangle)
+//{
+//	this->triangles->push_back(std::shared_ptr<Triangle>(triangle));
+//}
 
 void Scene::addMesh(TriangleMesh* mesh)
 {
@@ -69,10 +69,6 @@ std::vector<Triangle::TriangleShader> Scene::getTrianglesBuffer()
 	auto result = std::vector<Triangle::TriangleShader>();
 
 	result.reserve(this->getTrianglesNum());
-
-	for (int i = 0; i < this->triangles->size(); i++) {
-		result.push_back(this->triangles->at(i).get()->getShader());
-	}
 
 	for (int i = 0; i < this->meshes->size(); i++) {
 		auto polygons = this->meshes->at(i).get()->getPolygons();
@@ -130,6 +126,27 @@ VkDeviceSize Scene::getSceneBufferSize()
 	return size;
 }
 
+Scene::BVHsShader Scene::getSceneBVHsBuffer()
+{
+	Scene::BVHsShader result;
+	size_t triangles_offset = 0;
+
+	for (size_t i = 0; i < this->meshes->size(); i++) {
+		TriangleMesh* mesh = this->meshes->at(i).get();
+
+		TriangleMesh::BVHBuffer buffer = mesh->getBVHBuffer(i, triangles_offset);
+		triangles_offset += mesh->getPolygonsSize();
+
+		result.origins.push_back(buffer.origin);
+		result.leaves.insert(result.leaves.end(), buffer.bvhs.begin(), buffer.bvhs.end());
+	}
+
+	result.origin_size = result.origins.size() * sizeof(TriangleMesh::BVHShader);
+	result.leaves_size = result.leaves.size() * sizeof(TriangleMesh::BVHShader);
+
+	return result;
+}
+
 void Scene::addAmbientLight(AmbientLight* light)
 {
 	this->ambientLight = std::shared_ptr<AmbientLight>(light);
@@ -161,7 +178,7 @@ void Scene::update(GLFWwindow* window, float delta)
 
 size_t Scene::getTrianglesNum()
 {
-	size_t result = this->triangles->size();
+	size_t result = 0;
 
 	for (int i = 0; i < this->meshes->size(); i++) {
 		result += this->meshes->at(i).get()->getPolygonsSize();

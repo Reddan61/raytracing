@@ -106,6 +106,7 @@ Vulkan::Vulkan(Window* window)
     this->create_scene_buffer(window);
     this->create_spheres_buffer(window);
     this->create_triangles_buffer(window);
+    this->create_bvhs_buffers(window);
     this->create_point_lights_buffer(window);
     this->create_compute_descriptor_set_layout();
     this->create_compute_descriptor_pool();
@@ -123,6 +124,12 @@ Vulkan::Vulkan(Window* window)
 Vulkan::~Vulkan()
 {
     this->cleanup_swapchain();
+
+    vkDestroyBuffer(this->logical_device, this->bvhs_origins_buffer, nullptr);
+    vkFreeMemory(this->logical_device, this->bvhs_origins_buffer_memory, nullptr); 
+    
+    vkDestroyBuffer(this->logical_device, this->bvhs_leaves_buffer, nullptr);
+    vkFreeMemory(this->logical_device, this->bvhs_leaves_buffer_memory, nullptr);
 
     vkDestroyBuffer(this->logical_device, this->triangles_buffer, nullptr);
     vkFreeMemory(this->logical_device, this->triangles_buffer_memory, nullptr);
@@ -629,7 +636,7 @@ void Vulkan::create_compute_command_buffers()
 
 void Vulkan::create_compute_descriptor_pool()
 {
-    std::array<VkDescriptorPoolSize, 5> poolSizes{};
+    std::array<VkDescriptorPoolSize, 7> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -639,7 +646,11 @@ void Vulkan::create_compute_descriptor_pool()
     poolSizes[3].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     poolSizes[3].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);    
     poolSizes[4].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    poolSizes[4].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[4].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);  
+    poolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    poolSizes[5].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);   
+    poolSizes[6].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    poolSizes[6].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1142,6 +1153,35 @@ void Vulkan::create_triangles_buffer(Window* window)
     vkUnmapMemory(this->logical_device, this->triangles_buffer_memory);
 }
 
+void Vulkan::create_bvhs_buffers(Window* window)
+{
+    auto bvh = window->scene->getSceneBVHsBuffer();
+
+    this->create_buffer(
+        bvh.origin_size,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        this->bvhs_origins_buffer,
+        this->bvhs_origins_buffer_memory
+    );  
+    this->create_buffer(
+        bvh.leaves_size,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        this->bvhs_leaves_buffer,
+        this->bvhs_leaves_buffer_memory
+    );
+
+    void* data;
+    vkMapMemory(this->logical_device, this->bvhs_origins_buffer_memory, 0, bvh.origin_size, 0, &data);
+        memcpy(data, bvh.origins.data(), bvh.origin_size);
+    vkUnmapMemory(this->logical_device, this->bvhs_origins_buffer_memory);
+
+    vkMapMemory(this->logical_device, this->bvhs_leaves_buffer_memory, 0, bvh.leaves_size, 0, &data);
+        memcpy(data, bvh.leaves.data(), bvh.leaves_size);
+    vkUnmapMemory(this->logical_device, this->bvhs_leaves_buffer_memory);
+}
+
 void Vulkan::create_point_lights_buffer(Window* window)
 {
     auto pointLights = window->scene->getPointLightsBuffer();
@@ -1587,7 +1627,7 @@ void Vulkan::end_single_time_commands(VkCommandBuffer commandBuffer)
 
 void Vulkan::create_compute_descriptor_set_layout()
 {
-    std::array<VkDescriptorSetLayoutBinding, 5> layoutBindings{};
+    std::array<VkDescriptorSetLayoutBinding, 7> layoutBindings{};
 
     layoutBindings[0].binding = 0;
     layoutBindings[0].descriptorCount = 1;
@@ -1619,6 +1659,18 @@ void Vulkan::create_compute_descriptor_set_layout()
     layoutBindings[4].pImmutableSamplers = nullptr;
     layoutBindings[4].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
+    layoutBindings[5].binding = 5;
+    layoutBindings[5].descriptorCount = 1;
+    layoutBindings[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    layoutBindings[5].pImmutableSamplers = nullptr;
+    layoutBindings[5].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+    layoutBindings[6].binding = 6;
+    layoutBindings[6].descriptorCount = 1;
+    layoutBindings[6].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    layoutBindings[6].pImmutableSamplers = nullptr;
+    layoutBindings[6].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = layoutBindings.size();
@@ -1644,7 +1696,7 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
     }
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        std::array<VkWriteDescriptorSet, 5> descriptorWrites{};
+        std::array<VkWriteDescriptorSet, 7> descriptorWrites{};
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1708,7 +1760,35 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
         descriptorWrites[4].dstArrayElement = 0;
         descriptorWrites[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         descriptorWrites[4].descriptorCount = 1;
-        descriptorWrites[4].pBufferInfo = &trianglesBufferInfo;
+        descriptorWrites[4].pBufferInfo = &trianglesBufferInfo; 
+
+        auto bvh = window->scene->getSceneBVHsBuffer();
+        
+        VkDescriptorBufferInfo bvhOriginsBufferInfo{};
+        bvhOriginsBufferInfo.buffer = this->bvhs_origins_buffer;
+        bvhOriginsBufferInfo.offset = 0;
+        bvhOriginsBufferInfo.range = bvh.origin_size;
+
+        descriptorWrites[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[5].dstSet = this->compute_descriptor_sets[i];
+        descriptorWrites[5].dstBinding = 5;
+        descriptorWrites[5].dstArrayElement = 0;
+        descriptorWrites[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        descriptorWrites[5].descriptorCount = 1;
+        descriptorWrites[5].pBufferInfo = &bvhOriginsBufferInfo;  
+        
+        VkDescriptorBufferInfo bvhLeavesBufferInfo{};
+        bvhLeavesBufferInfo.buffer = this->bvhs_leaves_buffer;
+        bvhLeavesBufferInfo.offset = 0;
+        bvhLeavesBufferInfo.range = bvh.leaves_size;
+
+        descriptorWrites[6].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[6].dstSet = this->compute_descriptor_sets[i];
+        descriptorWrites[6].dstBinding = 6;
+        descriptorWrites[6].dstArrayElement = 0;
+        descriptorWrites[6].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        descriptorWrites[6].descriptorCount = 1;
+        descriptorWrites[6].pBufferInfo = &bvhLeavesBufferInfo;
 
         vkUpdateDescriptorSets(
             this->logical_device,

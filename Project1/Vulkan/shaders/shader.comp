@@ -36,16 +36,29 @@ struct Ray {
     vec3 direction;
 };
 
+struct AABB {
+    vec4 min, max;
+};
+
 struct Hit {
     float t;
+    bool is_sphere;
     bool is_triangle;
+    bool is_aabb;
     Sphere sphere;
     Triangle triangle;
+    AABB aabb;
 };
 
 struct Camera {
     vec3 position;
     mat4 rotation;
+};
+
+struct BVHNode {
+    int left_node, right_node;
+    int triangles_start, triangles_end;
+    AABB box;
 };
 
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
@@ -62,6 +75,14 @@ layout (std140, binding = 3) readonly buffer PointLightsBuffer {
 };
 layout (std140, binding = 4) readonly buffer TrianglesBuffer {
     Triangle triangles[];
+};
+
+layout (std140, binding = 5) readonly buffer BVHOriginsBuffer {
+    BVHNode bvh_origins[];
+};
+
+layout (std140, binding = 6) readonly buffer BVHLeavesBuffer {
+    BVHNode bvh_leaves[];
 };
 
 vec3 perPixel(int x, int y);
@@ -129,6 +150,25 @@ vec2 getTriangleHit(Ray ray, Triangle triangle) {
     return vec2(INFINITY, INFINITY);
 }
 
+vec2 getAABBHit(Ray ray, AABB box) {
+    vec3 invDirection = 1.0 / ray.direction;
+    vec3 tMin = (box.min.xyz - ray.origin) * invDirection;
+    vec3 tMax = (box.max.xyz - ray.origin) * invDirection;
+
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+
+
+    if (tNear > tFar || tFar < 0.0) {
+        return vec2(INFINITY, INFINITY);
+    }
+
+    return vec2(tNear, tFar);
+}
+
 Ray getRay(float x, float y)
 {
     ivec2 screen_size = imageSize(colorBuffer);
@@ -168,27 +208,8 @@ vec3 GetPointLightVector(vec3 point, PointLight light) {
     return normalize(light.position.xyz - point);
 }
 
-Hit getIntersection(Ray ray, float min_t, float max_t) {
-	Hit intersection;
-    intersection.t = INFINITY;
-    intersection.is_triangle = false;
-
-	for (int i = 0; i < scene.spheres_num; i++) {
-		Sphere sphere = spheres[i];
-
-		vec2 sphere_hit = getSphereHit(ray, sphere);
-
-		if (sphere_hit.x < intersection.t && min_t < sphere_hit.x && sphere_hit.x < max_t) {
-			intersection.t = sphere_hit.x;
-			intersection.sphere = sphere;
-		}
-		if (sphere_hit.y < intersection.t && min_t < sphere_hit.y && sphere_hit.y < max_t) {
-			intersection.t = sphere_hit.y;
-			intersection.sphere = sphere;
-		}
-	}
-
-    for (int i = 0; i < scene.triangles_num; i++) {
+Hit getTrianglesIntersection(Hit intersection, Ray ray, int start_index, int end_index, float min_t, float max_t) {
+    for (int i = start_index; i < end_index; i++) {
 		Triangle triangle = triangles[i];
 
 		vec2 triangle_hit = getTriangleHit(ray, triangle);
@@ -197,13 +218,104 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
 			intersection.t = triangle_hit.x;
 			intersection.triangle = triangle;
             intersection.is_triangle = true;
+            intersection.is_sphere = false;
+            intersection.is_aabb = false;
 		}
 		if (triangle_hit.y < intersection.t && min_t < triangle_hit.y && triangle_hit.y < max_t) {
 			intersection.t = triangle_hit.y;
 			intersection.triangle = triangle;
             intersection.is_triangle = true;
+            intersection.is_sphere = false;
+            intersection.is_aabb = false;
 		}
 	}
+
+    return intersection;
+}
+
+Hit getAABBIntersection(Hit intersection, Ray ray) {
+    for (int i = 0; i < 62; i++) {
+        BVHNode node = bvh_leaves[i];
+
+        vec2 hit = getAABBHit(ray, node.box);
+
+        if (hit.x != INFINITY && hit.y != INFINITY) {
+            intersection.is_sphere = false;
+            intersection.is_triangle = false;
+            intersection.is_aabb = true;
+            intersection.aabb = node.box;
+            intersection.t = hit.x;
+        }
+    }
+
+    return intersection;
+}
+
+#define STACK_SIZE 32
+
+Hit getIntersection(Ray ray, float min_t, float max_t) {
+	Hit intersection;
+    intersection.t = INFINITY;
+    intersection.is_sphere = false;
+    intersection.is_triangle = false;
+    intersection.is_aabb = false;
+
+	for (int i = 0; i < scene.spheres_num; i++) {
+		Sphere sphere = spheres[i];
+
+		vec2 sphere_hit = getSphereHit(ray, sphere);
+
+		if (sphere_hit.x < intersection.t && min_t < sphere_hit.x && sphere_hit.x < max_t) {
+            intersection.is_sphere = true;
+			intersection.t = sphere_hit.x;
+			intersection.sphere = sphere;
+		}
+		if (sphere_hit.y < intersection.t && min_t < sphere_hit.y && sphere_hit.y < max_t) {
+            intersection.is_sphere = true;
+			intersection.t = sphere_hit.y;
+			intersection.sphere = sphere;
+		}
+	}
+
+    for (int i = 0; i < 1; i++) {
+        BVHNode bvh_origin_node = bvh_origins[i];
+
+        vec2 aabb_hit_origin = getAABBHit(ray, bvh_origin_node.box);
+
+        if(aabb_hit_origin.x == INFINITY && aabb_hit_origin.y == INFINITY) {
+            continue;
+        }
+
+        int stack[STACK_SIZE];
+        int stack_ptr = 0;
+        stack[stack_ptr++] = bvh_origin_node.left_node;
+        stack[stack_ptr++] = bvh_origin_node.right_node;
+
+        while(stack_ptr > 0) {
+            int nodeIndex = stack[--stack_ptr];
+            BVHNode leaves_node = bvh_leaves[nodeIndex];
+
+            vec2 aabb_hit = getAABBHit(ray, leaves_node.box);
+
+            if (aabb_hit.x != INFINITY && aabb_hit.y != INFINITY) {
+                if (leaves_node.left_node == -1 && leaves_node.right_node == -1) {
+                    intersection = getTrianglesIntersection(
+                        intersection, 
+                        ray,
+                        leaves_node.triangles_start, 
+                        leaves_node.triangles_end,
+                        min_t,
+                        max_t
+                    );
+                } else {
+                    stack[stack_ptr++] = leaves_node.left_node;
+                    stack[stack_ptr++] = leaves_node.right_node;
+                }
+            }
+        }
+    }
+
+    //intersection = getAABBIntersection(intersection, ray);
 
 	return intersection;
 }
@@ -221,6 +333,27 @@ vec3 getTriangleNormal(Triangle triangle) {
     return normal;
 }
 
+vec3 getAABBNormal(vec3 point, AABB box) {
+    vec3 normal;
+
+    // Проверяем, с какой стороны AABB находится точка
+    if (point.x < box.min.x + 0.001) {
+        normal = vec3(-1.0, 0.0, 0.0); // Нормаль к грани слева
+    } else if (point.x > box.max.x - 0.001) {
+        normal = vec3(1.0, 0.0, 0.0); // Нормаль к грани справа
+    } else if (point.y < box.min.y + 0.001) {
+        normal = vec3(0.0, -1.0, 0.0); // Нормаль к грани снизу
+    } else if (point.y > box.max.y - 0.001) {
+        normal = vec3(0.0, 1.0, 0.0); // Нормаль к грани сверху
+    } else if (point.z < box.min.z + 0.001) {
+        normal = vec3(0.0, 0.0, -1.0); // Нормаль к грани сзади
+    } else {
+        normal = vec3(0.0, 0.0, 1.0); // Нормаль к грани спереди
+    }
+
+    return normal;
+}
+
 const float light_size = 0.025;
 const vec3 offsets[8] = {
   vec3(-light_size, -light_size, -light_size),
@@ -233,6 +366,8 @@ const vec3 offsets[8] = {
   vec3(-light_size, light_size, light_size)
 };
 
+#define SHADOW_RAYS 1
+
 float getShadow(
     vec3 point,
     vec3 normal,
@@ -240,7 +375,7 @@ float getShadow(
 ) {
     float intensity = 0.0f;
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < SHADOW_RAYS; i++) {
         vec3 light_point = point + offsets[i];
 
         vec3 light_vector = GetPointLightVector(light_point, point_light);
@@ -273,12 +408,15 @@ vec3 ComputeLight(
     vec3 obj_color;
     float obj_specular;
 
-    if (!intersection.is_triangle) {
+    if (intersection.is_sphere) {
         obj_color = intersection.sphere.color.xyz;
         obj_specular = intersection.sphere.specular;
-    } else {
+    } else if (intersection.is_triangle) {
         obj_color = intersection.triangle.color.xyz;
         obj_specular = intersection.triangle.specular;
+    } else if (intersection.is_aabb) {
+        obj_color = vec3(0.0, 1.0, 0.0);
+        obj_specular = -1;
     }
 
     for (int i = 0; i < scene.point_lights_num; i++) {
@@ -327,10 +465,12 @@ vec3 traceRay(
         vec3 point = ray.origin + (ray.direction * intersection.t);
         vec3 normal;
 
-        if (!intersection.is_triangle) {
+        if (intersection.is_sphere) {
             normal = getSphereNormal(point, intersection.sphere);
-        } else {
+        } else if(intersection.is_triangle) {
             normal = getTriangleNormal(intersection.triangle);
+        } else if(intersection.is_aabb) {
+            normal = getAABBNormal(point, intersection.aabb);
         }
 
         vec3 view = ray.direction * -1.0;

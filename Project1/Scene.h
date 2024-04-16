@@ -19,6 +19,12 @@ public:
 		Camera::CameraVulkan camera;
 	};
 
+	struct BVHsShader {
+		std::vector<TriangleMesh::BVHShader> origins;
+		std::vector<TriangleMesh::BVHShader> leaves;
+		VkDeviceSize origin_size, leaves_size;
+	};
+
 	Scene(Camera *camera);
 	~Scene();
 
@@ -28,7 +34,7 @@ public:
 	Sky* getSky();
 
 	void addSphere(Sphere* sphere);
-	void addTriangle(Triangle* triangle);
+	//void addTriangle(Triangle* triangle);
 	void addMesh(TriangleMesh* mesh);
 
 	std::vector<Sphere::SphereShader> getSpheresBuffer();
@@ -42,6 +48,8 @@ public:
 
 	Scene::SceneShader getSceneBuffer();
 	VkDeviceSize getSceneBufferSize();
+
+	Scene::BVHsShader getSceneBVHsBuffer();
 
 	void addAmbientLight(AmbientLight* light);
 	void addDirectionalLight(DirectionalLight* light);
