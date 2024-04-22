@@ -56,6 +56,9 @@ struct Camera {
 };
 
 struct BVHNode {
+    int parent_node, self_index;
+    // for origins only
+	int last_index_node;
     int left_node, right_node;
     int triangles_start, triangles_end;
     AABB box;
@@ -67,7 +70,7 @@ layout (std140, binding = 1) readonly buffer SpheresBuffer {
     Sphere spheres[];
 };
 layout (binding = 2) uniform SceneBuffer {
-    int spheres_num, triangles_num, point_lights_num, aa;
+    int spheres_num, triangles_num, point_lights_num, aa, bvh_origins, bvh_leaves;
     Camera camera;
 } scene;
 layout (std140, binding = 3) readonly buffer PointLightsBuffer {
@@ -151,16 +154,15 @@ vec2 getTriangleHit(Ray ray, Triangle triangle) {
 }
 
 vec2 getAABBHit(Ray ray, AABB box) {
-    vec3 invDirection = 1.0 / ray.direction;
-    vec3 tMin = (box.min.xyz - ray.origin) * invDirection;
-    vec3 tMax = (box.max.xyz - ray.origin) * invDirection;
+    vec3 inv_direction = 1.0f / ray.direction;
+    vec3 tMin = (box.min.xyz - ray.origin) * inv_direction;
+    vec3 tMax = (box.max.xyz - ray.origin) * inv_direction;
 
     vec3 t1 = min(tMin, tMax);
     vec3 t2 = max(tMin, tMax);
 
-    float tNear = max(max(t1.x, t1.y), t1.z);
-    float tFar = min(min(t2.x, t2.y), t2.z);
-
+    float tNear = max(t1.x, max(t1.y, t1.z));
+    float tFar = min(t2.x, min(t2.y, t2.z));
 
     if (tNear > tFar || tFar < 0.0) {
         return vec2(INFINITY, INFINITY);
@@ -234,8 +236,8 @@ Hit getTrianglesIntersection(Hit intersection, Ray ray, int start_index, int end
 }
 
 Hit getAABBIntersection(Hit intersection, Ray ray) {
-    for (int i = 0; i < 62; i++) {
-        BVHNode node = bvh_leaves[i];
+    for (int i = 0; i < scene.bvh_origins; i++) {
+        BVHNode node = bvh_origins[i];
 
         vec2 hit = getAABBHit(ray, node.box);
 
@@ -250,8 +252,6 @@ Hit getAABBIntersection(Hit intersection, Ray ray) {
 
     return intersection;
 }
-
-#define STACK_SIZE 32
 
 Hit getIntersection(Ray ray, float min_t, float max_t) {
 	Hit intersection;
@@ -277,7 +277,7 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
 		}
 	}
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < scene.bvh_origins; i++) {
         BVHNode bvh_origin_node = bvh_origins[i];
 
         vec2 aabb_hit_origin = getAABBHit(ray, bvh_origin_node.box);
@@ -286,31 +286,86 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
             continue;
         }
 
-        int stack[STACK_SIZE];
-        int stack_ptr = 0;
-        stack[stack_ptr++] = bvh_origin_node.left_node;
-        stack[stack_ptr++] = bvh_origin_node.right_node;
+        BVHNode node = bvh_leaves[bvh_origin_node.left_node];
+        bool is_left = true;
+        bool to_parent = false;
 
-        while(stack_ptr > 0) {
-            int nodeIndex = stack[--stack_ptr];
-            BVHNode leaves_node = bvh_leaves[nodeIndex];
+        // 1 - left nodes, 2 - right nodes
+        while(true) {
+            if (to_parent) {
+                // parent node is root
+                if (node.parent_node == -1) {
+                    // if we come from left root node - we need to check right nodes of root
+                    if (node.self_index == bvh_origin_node.left_node) {
+                        is_left = false; 
+                        to_parent = false;
 
-            vec2 aabb_hit = getAABBHit(ray, leaves_node.box);
+                        node = bvh_origin_node;
+                    // if we come from right root node - we checked all tree nodes
+                    } else {
+                        break;
+                    }
+                } else {
+                    // if we come from left - we need check right nodes
+                    if (node.self_index == bvh_leaves[node.parent_node].left_node) {
+                        is_left = false; 
+                        to_parent = false;
+                    // if we come from right - we checked all nodes below, and we need to get higher
+                    } else {
+                        to_parent = true;
+                        is_left = false;
+                    }
 
+                    node = bvh_leaves[node.parent_node];
+                }
+
+
+                continue;
+            }
+
+
+            vec2 aabb_hit = getAABBHit(ray, node.box);
+
+            // if hit box
             if (aabb_hit.x != INFINITY && aabb_hit.y != INFINITY) {
-                if (leaves_node.left_node == -1 && leaves_node.right_node == -1) {
+                // not last node with triangles
+                if (node.left_node != -1 && node.right_node != -1) {
+                    if (is_left) {
+                        node = bvh_leaves[node.left_node];
+                    } else {
+                        node = bvh_leaves[node.right_node];
+                        is_left = true;
+                    }
+
+                    continue;
+                // node with triangles
+                } else {
                     intersection = getTrianglesIntersection(
                         intersection, 
                         ray,
-                        leaves_node.triangles_start, 
-                        leaves_node.triangles_end,
+                        node.triangles_start, 
+                        node.triangles_end,
                         min_t,
                         max_t
                     );
-                } else {
-                    stack[stack_ptr++] = leaves_node.left_node;
-                    stack[stack_ptr++] = leaves_node.right_node;
+                    
+                    if (is_left) {
+                        is_left = false;
+                    } else {
+                        to_parent = true;
+                    }
+
+                    continue;
                 }
+            // didn't hit box
+            } else {
+                if (is_left) {
+                    is_left = false;
+                } else {
+                    to_parent = true;
+                }
+
+                continue;
             }
         }
     }

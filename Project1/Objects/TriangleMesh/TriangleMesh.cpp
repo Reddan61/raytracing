@@ -56,9 +56,10 @@ TriangleMesh::BVHBuffer TriangleMesh::getBVHBuffer(size_t bvhs_offset, size_t tr
 {
     TriangleMesh::BVHBuffer result;
     size_t bvhs_nodes_index = bvhs_offset - 1;
-    this->getBVHBufferRecursive(result.bvhs, this->bvh, bvhs_nodes_index, triangles_offset);
+    this->getBVHBufferRecursive(result.bvhs, this->bvh, bvhs_nodes_index, triangles_offset, -1);
 
     result.origin = result.bvhs[0];
+    result.origin.last_index_node = bvhs_nodes_index;
     result.bvhs.erase(result.bvhs.begin());
 
     return result;
@@ -68,11 +69,15 @@ void TriangleMesh::getBVHBufferRecursive(
     std::vector<TriangleMesh::BVHShader>& result, 
     BVHNode* node,
     size_t& bvh_node_index,
-    size_t triangles_offset
+    size_t triangles_offset,
+    size_t parent_node
 )
 {
     TriangleMesh::BVHShader shader;
     std::vector<TriangleMesh::BVHShader> inside;
+    shader.last_index_node = -1;
+    shader.self_index = bvh_node_index;
+    shader.parent_node = parent_node;
     shader.box = node->box;
 
     if (node->left_node == nullptr && node->right_node == nullptr) {
@@ -82,12 +87,13 @@ void TriangleMesh::getBVHBufferRecursive(
         shader.triangles_end = node->end + triangles_offset;
     }
     else {
+        size_t self = bvh_node_index;
         bvh_node_index += 1;
         shader.left_node = bvh_node_index;
-        this->getBVHBufferRecursive(inside, node->left_node, bvh_node_index, triangles_offset);
+        this->getBVHBufferRecursive(inside, node->left_node, bvh_node_index, triangles_offset, self);
         bvh_node_index += 1;
         shader.right_node = bvh_node_index;
-        this->getBVHBufferRecursive(inside, node->right_node, bvh_node_index, triangles_offset);
+        this->getBVHBufferRecursive(inside, node->right_node, bvh_node_index, triangles_offset, self);
     }
 
     result.push_back(shader);
@@ -117,7 +123,8 @@ TriangleMesh::BVHNode* TriangleMesh::calculateBVH(std::vector<Triangle*>& triang
 
     node->box = aabb;
 
-    if (triangles_splitted.size() == 1 || depth <= 0) {
+    //if (triangles_splitted.size() == 1 || depth <= 0) {
+    if (triangles_splitted.size() == 1) {
         node->left_node = nullptr;
         node->right_node = nullptr;
         node->start = start;

@@ -15,7 +15,8 @@ int main() {
     const uint32_t WIDTH = 1200;
     const uint32_t HEIGHT = 800;
 
-    Camera *camera = new Camera(2.0f, 1.0f, 0);
+    Camera *camera = new Camera(0.0f, 2.0f, 5.0f);
+    //Camera *camera = new Camera(2.0f, 100.0f, 100.0f);
 
     Scene* scene = new Scene(camera);
     scene->setAA(2);
@@ -86,6 +87,7 @@ int main() {
     );
 
     TriangleMesh* sus = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
+    //TriangleMesh* sus = new TriangleMesh(Utils::loadOBJ("Klee.obj"));
     //sus->changePosition(glm::vec3(2.0f, 0.0f, -3.0f));
 
     PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 2.0f, 0.0), 0.4f, 128.0f);

@@ -16,6 +16,9 @@ public:
 	};
 
 	struct BVHShader {
+		int parent_node, self_index;
+		// for origin only
+		int last_index_node;
 		int left_node, right_node;
 		int triangles_start, triangles_end;
 		alignas(16) Triangle::AABB box;
@@ -57,7 +60,8 @@ private:
 		std::vector<TriangleMesh::BVHShader> &result, 
 		BVHNode* node, 
 		size_t& bvh_node_index,
-		size_t triangles_offset
+		size_t triangles_offset,
+		size_t parent_node
 	);
 };
 

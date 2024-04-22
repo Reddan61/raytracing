@@ -15,7 +15,7 @@ class Scene
 {
 public:
 	struct SceneShader {
-		int spheres_num, triangles_num, point_ligts_num, aa;
+		int spheres_num, triangles_num, point_ligts_num, aa, bvh_origins, bvh_leaves;
 		Camera::CameraVulkan camera;
 	};
 

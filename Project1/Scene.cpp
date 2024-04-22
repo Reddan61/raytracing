@@ -110,11 +110,15 @@ Scene::SceneShader Scene::getSceneBuffer()
 {
 	Scene::SceneShader result;
 
+	auto bvhs = this->getSceneBVHsBuffer();
+
 	result.aa = this->aa;
 	result.spheres_num = this->spheres->size();
 	result.triangles_num = this->getTrianglesNum();
 	result.point_ligts_num = this->pointLights->size();
 	result.camera = this->camera->getBufferStruct();
+	result.bvh_origins = bvhs.origins.size();
+	result.bvh_leaves = bvhs.leaves.size();
 
 	return result;
 }
