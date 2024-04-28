@@ -1,5 +1,7 @@
 #version 450
 
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
 #define INFINITY 1.0f / 0.0f
 #define EPSILON 0.001f
 #define TRIANGLES_NUM 1
@@ -56,15 +58,13 @@ struct Camera {
 };
 
 struct BVHNode {
-    int parent_node, self_index;
-    // for origins only
-	int last_index_node;
+    int parent_node;
     int left_node, right_node;
-    int triangles_start, triangles_end;
+    int right_sibling;
+    int triangle_index;
     AABB box;
 };
 
-layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 layout (binding = 0, rgba8) uniform image2D colorBuffer;
 layout (std140, binding = 1) readonly buffer SpheresBuffer {
     Sphere spheres[];
@@ -287,55 +287,37 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
         }
 
         BVHNode node = bvh_leaves[bvh_origin_node.left_node];
-        bool is_left = true;
         bool to_parent = false;
 
         // 1 - left nodes, 2 - right nodes
         while(true) {
             if (to_parent) {
-                // parent node is root
-                if (node.parent_node == -1) {
-                    // if we come from left root node - we need to check right nodes of root
-                    if (node.self_index == bvh_origin_node.left_node) {
-                        is_left = false; 
-                        to_parent = false;
-
-                        node = bvh_origin_node;
-                    // if we come from right root node - we checked all tree nodes
-                    } else {
-                        break;
-                    }
-                } else {
-                    // if we come from left - we need check right nodes
-                    if (node.self_index == bvh_leaves[node.parent_node].left_node) {
-                        is_left = false; 
-                        to_parent = false;
-                    // if we come from right - we checked all nodes below, and we need to get higher
-                    } else {
-                        to_parent = true;
-                        is_left = false;
-                    }
-
-                    node = bvh_leaves[node.parent_node];
+                if (node.parent_node == -1 && node.right_sibling == -1) {
+                    break;
                 }
 
+                node = bvh_leaves[node.parent_node];
 
-                continue;
+                // if we come from left - we need check right nodes
+                if (node.right_sibling != -1) {
+                    to_parent = false;
+                    node = bvh_leaves[node.right_sibling];
+                // if we come from right - we checked all nodes below, and we need to get higher
+                } else {
+                    to_parent = true;
+                    continue;
+                }
             }
 
+            vec2 aabb_hit;
 
-            vec2 aabb_hit = getAABBHit(ray, node.box);
+            aabb_hit = getAABBHit(ray, node.box);
 
             // if hit box
             if (aabb_hit.x != INFINITY && aabb_hit.y != INFINITY) {
                 // not last node with triangles
                 if (node.left_node != -1 && node.right_node != -1) {
-                    if (is_left) {
-                        node = bvh_leaves[node.left_node];
-                    } else {
-                        node = bvh_leaves[node.right_node];
-                        is_left = true;
-                    }
+                    node = bvh_leaves[node.left_node];
 
                     continue;
                 // node with triangles
@@ -343,14 +325,14 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
                     intersection = getTrianglesIntersection(
                         intersection, 
                         ray,
-                        node.triangles_start, 
-                        node.triangles_end,
+                        node.triangle_index, 
+                        node.triangle_index + 1,
                         min_t,
                         max_t
                     );
-                    
-                    if (is_left) {
-                        is_left = false;
+
+                    if (node.right_sibling != -1) {
+                        node = bvh_leaves[node.right_sibling];
                     } else {
                         to_parent = true;
                     }
@@ -359,8 +341,8 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
                 }
             // didn't hit box
             } else {
-                if (is_left) {
-                    is_left = false;
+                if (node.right_sibling != -1) {
+                    node = bvh_leaves[node.right_sibling];
                 } else {
                     to_parent = true;
                 }
@@ -565,32 +547,37 @@ vec3 getPixelColor(float x, float y)
 
 vec3 perPixel(int x, int y)
 {
-	// anti-aliasing
-	float half_aa = scene.aa / 2.0f;
-	float partial_aa = 1.f / half_aa;
+	vec3 result_ns;
 
-    vec3 color = vec3(0.0f);
+    if (scene.aa <= 1) {
+        result_ns = getPixelColor(x, y);
+    } else {
+        vec3 color = vec3(0.0f);
 
-    float pixel_start_x = x - 0.5f;
-	float pixel_start_y = y - 0.5f;
+        float half_aa = scene.aa / 2.0f;
+	    float partial_aa = 1.f / half_aa;
 
-    for (int i = 0; i < half_aa; i++) {
-		float u = pixel_start_x + (partial_aa * i);
-		float v = pixel_start_y + (partial_aa * i);
+        float pixel_start_x = x - 0.5f;
+	    float pixel_start_y = y - 0.5f;
 
-		color = color + getPixelColor(u, v);
-	}
+        for (int i = 0; i < half_aa; i++) {
+		    float u = pixel_start_x + (partial_aa * i);
+		    float v = pixel_start_y + (partial_aa * i);
 
-	pixel_start_x = x + 0.5f;
+		    color = color + getPixelColor(u, v);
+	    }
 
-    for (int i = 0; i < half_aa; i++) {
-	    float u = pixel_start_x - (partial_aa * i);
-		float v = pixel_start_y + (partial_aa * i);
+	    pixel_start_x = x + 0.5f;
 
-		color = color + getPixelColor(u, v);
-	}
+        for (int i = 0; i < half_aa; i++) {
+	        float u = pixel_start_x - (partial_aa * i);
+		    float v = pixel_start_y + (partial_aa * i);
 
-	vec3 result_ns = color / scene.aa;
+		    color = color + getPixelColor(u, v);
+	    }
+
+	    result_ns = color / scene.aa;
+    }
 
     return result_ns;
 }

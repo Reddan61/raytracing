@@ -19,7 +19,7 @@ int main() {
     //Camera *camera = new Camera(2.0f, 100.0f, 100.0f);
 
     Scene* scene = new Scene(camera);
-    scene->setAA(2);
+    scene->setAA(1);
 
     Sphere* sphere1 = new Sphere(glm::vec3(0.0, 1.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, 0.2f, 0.0f);
     Sphere* sphere2 = new Sphere(glm::vec3(2.5, 0.0, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.5f);

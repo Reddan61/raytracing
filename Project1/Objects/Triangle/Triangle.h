@@ -14,6 +14,17 @@ public:
 
 	struct AABB {
 		glm::vec4 min, max;
+		void grow(AABB box) {
+			min = glm::min(min, box.min);
+			max = glm::max(max, box.max);
+		};
+		float area() {
+			glm::vec4 size = max - min;
+			return size.x * size.y + size.y * size.z + size.z * size.x;
+ 		}
+		glm::vec4 center() {
+			return (min + max) * 0.5f;
+		}
 	};
 
 	Triangle(
