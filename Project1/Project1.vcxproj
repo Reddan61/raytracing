@@ -144,6 +144,7 @@
     <ClCompile Include="Objects\Object.cpp" />
     <ClCompile Include="Light\PointLight.cpp" />
     <ClCompile Include="Render.cpp" />
+    <ClCompile Include="Rotation\RotationMatrix.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sky\Sky.cpp" />
     <ClCompile Include="Objects\Sphere\Sphere.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="Objects\Triangle\Triangle.cpp" />
     <ClCompile Include="Objects\TriangleMesh\TriangleMesh.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="Vulkan\VulkanInit\VulkanInit.cpp" />
     <ClCompile Include="Vulkan\Vulkan.cpp" />
     <ClCompile Include="Window\Window.cpp" />
   </ItemGroup>
@@ -177,6 +179,7 @@
     <ClInclude Include="Objects\Object.h" />
     <ClInclude Include="Light\PointLight.h" />
     <ClInclude Include="Render.h" />
+    <ClInclude Include="Rotation\RotationMatrix.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sky\Sky.h" />
     <ClInclude Include="Objects\Sphere\Sphere.h" />
@@ -185,6 +188,7 @@
     <ClInclude Include="Objects\Triangle\Triangle.h" />
     <ClInclude Include="Objects\TriangleMesh\TriangleMesh.h" />
     <ClInclude Include="Utils.h" />
+    <ClInclude Include="Vulkan\VulkanInit\VulkanInit.h" />
     <ClInclude Include="Vulkan\Vulkan.h" />
     <ClInclude Include="Window\Window.h" />
   </ItemGroup>

@@ -56,7 +56,7 @@ void Window::run()
         this->draw();
     }
 
-    vkDeviceWaitIdle(this->vulkan->logical_device);
+    vkDeviceWaitIdle(this->vulkan->vulkan_init->getLogicalDevice());
 }
 
 void Window::glfw_clean_up()

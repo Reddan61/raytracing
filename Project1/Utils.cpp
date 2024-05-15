@@ -69,6 +69,9 @@ TriangleMesh* Utils::LoadCustomFormatFile(const std::string const& filename)
 
 std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
 {
+    float specular = -1.0f;
+    float reflective = 0.0f;
+
     std::vector<Triangle*>* triangles = new std::vector<Triangle*>();
 
     std::ifstream file(filename);
@@ -104,7 +107,9 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
                     vertices[indices[0]],
                     vertices[indices[1]],
                     vertices[indices[2]],
-                    glm::vec3(0.0, 1.0, 0.0)
+                    glm::vec3(0.0, 0.0, 1.0),
+                    specular,
+                    reflective
                 );
                 triangles->push_back(triangle);
             }
@@ -113,13 +118,17 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
                     vertices[indices[0]],
                     vertices[indices[1]],
                     vertices[indices[2]],
-                    glm::vec3(0.0, 1.0, 0.0)
+                    glm::vec3(0.0, 0.0, 1.0),
+                    specular,
+                    reflective
                 );
                 Triangle* triangle2 = new Triangle(
                     vertices[indices[2]],
                     vertices[indices[3]],
                     vertices[indices[0]],
-                    glm::vec3(0.0, 1.0, 0.0)
+                    glm::vec3(0.0, 0.0, 1.0),
+                    specular,
+                    reflective
                 );
                 triangles->push_back(triangle1);
                 triangles->push_back(triangle2);

@@ -18,108 +18,59 @@ int main() {
     Camera *camera = new Camera(0.0f, 2.0f, 5.0f);
     //Camera *camera = new Camera(2.0f, 100.0f, 100.0f);
 
-    Scene* scene = new Scene(camera);
+    AmbientLight* ambient_light = new AmbientLight(0.1f);
+    DirectionalLight* directional_light = new DirectionalLight(glm::vec3(0.0f, 1.0f, 1.0f), 0.2f, 2.0f);
+
+    Scene* scene = new Scene(camera, ambient_light, directional_light);
     scene->setAA(1);
 
-    Sphere* sphere1 = new Sphere(glm::vec3(0.0, 1.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, 0.2f, 0.0f);
+    Sphere* sphere1 = new Sphere(glm::vec3(0.0, 1.0, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, 0.2f, 0.5f);
     Sphere* sphere2 = new Sphere(glm::vec3(2.5, 0.0, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.5f);
     Sphere* sphere3 = new Sphere(glm::vec3(-2.5, 0.0, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
-    Sphere* sphere4 = new Sphere(glm::vec3(0, -5001.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, 0.2f, 0.0f);
+    Sphere* sphere4 = new Sphere(glm::vec3(0, -5002.0f, 0.0), glm::vec3(1.0, 1.0, 0.0), 5000.0, 0.2f, 0.0f);
     Sphere* sphere5 = new Sphere(glm::vec3(0.0, 3.0f, -6.0), glm::vec3(0.0, 0.0, 1.0), 1.0f, -1.0f, 0.0f);
     Sphere* sphere6 = new Sphere(glm::vec3(2.5f, 3.0f, -6.0), glm::vec3(1.0, 0.0, 0.0), 1.0f, -1.0f, 0.0f);
     Sphere* sphere7 = new Sphere(glm::vec3(-2.5f, 3.0f, -6.0), glm::vec3(0.0, 1.0, 0.0), 1.0f, -1.0f, 0.0f);
 
-    Triangle* triangle1 = new Triangle(
-        glm::vec3(0.0f, 0.0f, 16.0f),
-        glm::vec3(-4.0f, 0.0f, 16.0f),
-        glm::vec3(-4.0f, 5.0f, 16.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f),
-        0.2f,
-        0.0f
-    );
-    Triangle* triangle2 = new Triangle(
-        glm::vec3(-4.0f, 5.0f, -3.0f),
-        glm::vec3(0.0f, 5.0f, -3.0f),
-        glm::vec3(0.0f, 0.0f, -3.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        0.2f,
-        1.0f
-    ); 
-    Triangle* triangle3 = new Triangle(
-        glm::vec3(-1.0f, 5.0f, -3.0f),
-        glm::vec3(3.0f, 8.0f, -4.0f),
-        glm::vec3(3.0f, 5.0f, -3.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        0.2f,
-        1.0f
-    );
-    Triangle* triangle4 = new Triangle(
-        glm::vec3(-16.0f, 0.0f, 0.0f),
-        glm::vec3(-16.0f, 5.0f, 0.0f),
-        glm::vec3(-16.0f, 0.0f, 4.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f),
-        0.2f,
-        0.0f
-    );
-    Triangle* triangle5 = new Triangle(
-        glm::vec3(16.0f, 5.0f, 0.0f),
-        glm::vec3(16.0f, 0.0f, 0.0f),
-        glm::vec3(16.0f, 0.0f, 4.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f),
-        0.2f,
-        0.0f
-    );
-    Triangle* triangle6 = new Triangle(
-        glm::vec3(-4.0f, 0.0f, -16.0f),
-        glm::vec3(0.0f, 0.0f, -16.0f),
-        glm::vec3(-4.0f, 5.0f, -16.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f),
-        0.2f,
-        0.0f
-    );    
-    Triangle* triangle7 = new Triangle(
-        glm::vec3(4.0f, 8.0f, 0.0f),
-        glm::vec3(0.0f, 8.0f, 0.0f),
-        glm::vec3(0.0f, 8.0f, -4.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f),
-        0.2f,
-        0.0f
-    );
-
     TriangleMesh* sus = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
-    //TriangleMesh* sus = new TriangleMesh(Utils::loadOBJ("Klee.obj"));
-    //sus->changePosition(glm::vec3(2.0f, 0.0f, -3.0f));
+    TriangleMesh* sus2 = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
+    TriangleMesh* sus3 = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
+    sus->changePosition(glm::vec3(5.0f, 0.0f, -5.0f));
+    sus->rotate(90.0f, 0.0f);
+    sus2->changePosition(glm::vec3(-5.0f, 0.0f, -5.0f));
+    sus3->changePosition(glm::vec3(0.0f, 0.0f, 2.0f));
+    // TODO: убрать ограничение на вращение
+    sus3->rotate(0.0f, -90.0f);
+    sus2->rotate(0.0f, -180.0f);
 
-    PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 2.0f, 0.0), 0.4f, 128.0f);
+    TriangleMesh* klee = new TriangleMesh(Utils::loadOBJ("Klee.obj"));
+
+    PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 10.0f, 0.0), 0.4f, 128.0f);
     PointLight* pointLight2 = new PointLight(glm::vec3(-4.0f, 2.0f, 0.0), 0.4f, 32.0f);
     PointLight* pointLight3 = new PointLight(glm::vec3(0.0f, 0.0f, 0.0f), 0.4f, 32.0f);
     PointLight* pointLight4 = new PointLight(glm::vec3(0.0f, 4.0f, 0.0f), 0.4f, 128.0f);
     PointLight* pointLight5 = new PointLight(glm::vec3(0.0f, 2.0f, -3.0f), 0.4f, 128.0f);
     PointLight* pointLight6 = new PointLight(glm::vec3(0.0f, 2.0f, 3.0f), 0.4f, 128.0f);
 
-    //scene->addSphere(sphere1);
+    scene->addSphere(sphere1);
     //scene->addSphere(sphere2);
     //scene->addSphere(sphere3);
-    scene->addSphere(sphere4);
+    //scene->addSphere(sphere4);
     //scene->addSphere(sphere5);
     /*scene->addSphere(sphere6);
     scene->addSphere(sphere7);*/
-    //scene->addTriangle(triangle1);
-    //scene->addTriangle(triangle2);
-    //scene->addTriangle(triangle3);
-    //scene->addTriangle(triangle4);
-    //scene->addTriangle(triangle5);
-    //scene->addTriangle(triangle6);
-    //scene->addTriangle(triangle7);
+    //scene->addMesh(klee);
     scene->addMesh(sus);
+    scene->addMesh(sus2);
+    scene->addMesh(sus3);
     //scene->addMesh(test);
 
     scene->addPointLight(pointLight1);
-    scene->addPointLight(pointLight2);
-    scene->addPointLight(pointLight3);
-    scene->addPointLight(pointLight4);
-    scene->addPointLight(pointLight5);
-    scene->addPointLight(pointLight6);
+    //scene->addPointLight(pointLight2);
+    //scene->addPointLight(pointLight3);
+    //scene->addPointLight(pointLight4);
+    //scene->addPointLight(pointLight5);
+    //scene->addPointLight(pointLight6);
 
     Window window = Window(WIDTH, HEIGHT, scene);
 

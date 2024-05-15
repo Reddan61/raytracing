@@ -1,12 +1,6 @@
 #pragma once
+#include "./Rotation/RotationMatrix.h"
 #include "./Objects/Object.h"
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 class Camera
 {
@@ -22,27 +16,13 @@ public:
 	void update(GLFWwindow* window, float delta);
 	void keyCheck(GLFWwindow* window, float delta);
 	glm::vec3 getPosition();
-	glm::mat4 getRotation();
 
 	CameraVulkan getBufferStruct();
 private:
 	glm::vec3 position;
-	glm::vec3 front;
-	glm::vec3 up;
+	RotationMatrix* rotation_matrix = nullptr;
 
 	const float SPEEDMOVE = 2;
 	const float SPEEDSENS = 1.0f;
-	float rotationXAngle = 0;
-	float rotationYAngle = 0;
-
-	glm::mat4 rotationY;
-	glm::mat4 rotationX;
-
-	void setRotationX(float angle);
-	void setRotationY(float angle);
-
-	void calculatedRotations();
-	void calculateFront();
-	void calculateUp();
 };
 

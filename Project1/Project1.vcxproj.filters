@@ -69,6 +69,12 @@
     <ClCompile Include="Vulkan\Vulkan.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Rotation\RotationMatrix.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\VulkanInit\VulkanInit.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="openal32.dll" />
@@ -136,6 +142,12 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Config.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Rotation\RotationMatrix.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\VulkanInit\VulkanInit.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

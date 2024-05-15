@@ -43,11 +43,13 @@ public:
 
 	void update(GLFWwindow* window, float delta) override;
 	void changePosition(const glm::vec3 const& position) override;
-	glm::vec3 getCentroid();
+	void rotate(float xAngle, float yAngle, glm::vec4 center);
+
+	glm::vec4 getCentroid();
 	Triangle::AABB getAABB();
 private:
-	glm::vec3 A, B, C;
-	glm::vec3 centroid;
+	glm::vec4 A, B, C;
+	glm::vec4 centroid;
 	bool isSingleSide = false;
 
 	void calculateCentroid();

@@ -16,6 +16,8 @@ class Scene
 public:
 	struct SceneShader {
 		int spheres_num, triangles_num, point_ligts_num, aa, bvh_origins, bvh_leaves;
+		float ambient_bright;
+		DirectionalLight::DirectionalLightShader directional_light;
 		Camera::CameraVulkan camera;
 	};
 
@@ -25,7 +27,7 @@ public:
 		VkDeviceSize origin_size, leaves_size;
 	};
 
-	Scene(Camera *camera);
+	Scene(Camera *camera, AmbientLight* ambient_light, DirectionalLight* directional_light);
 	~Scene();
 
 	std::vector<std::shared_ptr<Object>>* getSceneObjects();
@@ -51,8 +53,8 @@ public:
 
 	Scene::BVHsShader getSceneBVHsBuffer();
 
-	void addAmbientLight(AmbientLight* light);
-	void addDirectionalLight(DirectionalLight* light);
+	void setAmbientLight(AmbientLight* light);
+	void setDirectionalLight(DirectionalLight* light);
 	void addPointLight(PointLight* light);
 
 	void setAA(int num);
@@ -68,7 +70,7 @@ private:
 
 	std::shared_ptr<AmbientLight> ambientLight = nullptr;
 	std::vector<std::shared_ptr<PointLight>>* pointLights = nullptr;
-	std::vector<std::shared_ptr<DirectionalLight>>* directionalLights = nullptr;
+	std::shared_ptr<DirectionalLight> directionalLight = nullptr;
 	
 	Camera* camera = nullptr;
 	Sky* sky = nullptr;

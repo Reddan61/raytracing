@@ -11,11 +11,10 @@
 #include <random>
 #include <chrono>
 
-#include "../Config.h"
-
-#include "../Window/Window.h"
+#include "./VulkanInit/VulkanInit.h"
 
 class Window;
+class VulkanInit;
 
 class Vulkan
 {
@@ -28,67 +27,14 @@ private:
 	const int MAX_FRAMES_IN_FLIGHT = 2;
 	uint32_t current_frame = 0;
 
-	struct QueueFamilyIndices {
-		std::optional<uint32_t> graphics_and_compute_family;
-		std::optional<uint32_t> present_family;
-
-		bool isComplete() {
-			return graphics_and_compute_family.has_value() && present_family.has_value();
-		}
-	};
-
-	struct SwapChainSupportDetails {
-		VkSurfaceCapabilitiesKHR capabilities;
-		std::vector<VkSurfaceFormatKHR> formats;
-		std::vector<VkPresentModeKHR> present_modes;
-	};
-
 	bool framebuffer_resized = false;
 
-	// init
-	VkInstance instance;
-	VkPhysicalDevice phys_device;
-	VkDevice logical_device;
-	VkSurfaceKHR surface;
-	VkSwapchainKHR swap_chain;
-	VkRenderPass render_pass;
-	VkPipeline graphics_pipeline;
-	VkCommandPool command_pool;
-	std::vector<VkImage> swap_ñhain_images;
-	VkFormat swap_chain_image_format;
-	VkExtent2D swap_chain_extent;
-	std::vector<VkImageView> swap_chain_image_views;
-	std::vector<VkFramebuffer> swap_chain_framebuffers;
-	VkDebugUtilsMessengerCreateInfoEXT debug_create_instance_info;
-	VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info;
-	VkDebugUtilsMessengerEXT debug_messenger;
-	const std::vector<const char*> validation_layers = {
-		"VK_LAYER_KHRONOS_validation"
-	};
-	const std::vector<const char*> device_extensions = {
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
-	};
-	void show_available_extensions();
-	void setup_debug_messegner();
-	void pick_phys_device();
-	void create_logical_device();
-	void create_surface(Window* window);
-	void create_swap_chain(Window* window);
-	void create_image_views();
-	void create_render_pass();
-	void create_framebuffers();
-	void create_command_pool();
-	void create_command_buffers();
-	void cleanup_swapchain();
-	void set_framebuffer_resized(bool isResized);
-	bool is_device_suitable(VkPhysicalDevice device);
-	bool check_device_extensions_support(VkPhysicalDevice device);
-	bool check_validation_layers_support();
-	VkApplicationInfo create_app_info();
-	VkInstanceCreateInfo create_instance_info(Window* window, VkApplicationInfo& app_info);
+	VulkanInit* vulkan_init = nullptr;
 
-	// compute
-	VkQueue compute_queue;
+	VkPipeline graphics_pipeline;
+	void create_command_buffers();
+	void set_framebuffer_resized(bool isResized);
+
 	VkDescriptorPool compute_descriptor_pool;
 	std::vector<VkDescriptorSet> compute_descriptor_sets;
 	VkDescriptorSetLayout compute_descriptor_set_layout;
@@ -127,9 +73,6 @@ private:
 	void create_compute_command_buffers();
 	void create_compute_pipe_line();
 
-	// graphics
-	VkQueue graphics_queue;
-	VkQueue present_queue;
 	VkPipelineLayout graphics_pipeline_layout;
 	VkDescriptorPool graphics_descriptor_pool;
 	VkDescriptorSetLayout graphics_descriptor_set_layout;
@@ -157,14 +100,8 @@ private:
 	void create_sync_objects();
 
 	void draw_frame(Window* window);
-	void recreate_swapchain(Window *window);
 
 	// utils
-	SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice device);
-	VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR choose_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-	VkExtent2D choose_swap_extent(Window *window, const VkSurfaceCapabilitiesKHR& capabilities);
-	Vulkan::QueueFamilyIndices find_queue_families(VkPhysicalDevice device);
 	VkShaderModule create_shader_module(const std::vector<char>& code);
 	uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
@@ -174,7 +111,6 @@ private:
 		VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
 		VkImage& image, VkDeviceMemory& imageMemory
 	);
-	VkImageView create_image_view(VkImage image, VkFormat format);
 	VkCommandBuffer begin_single_time_commands();
 	void end_single_time_commands(VkCommandBuffer commandBuffer);
 	void transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);

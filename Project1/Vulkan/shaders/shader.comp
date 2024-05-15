@@ -4,15 +4,14 @@ layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 #define INFINITY 1.0f / 0.0f
 #define EPSILON 0.001f
-#define TRIANGLES_NUM 1
 
 struct AmbientLight {
     float bright;
 };
 
 struct DirectionalLight {
-    float bright, maxT;
-    vec3 position;
+	float bright, shininess;
+	vec4 direction;
 };
 
 struct PointLight {
@@ -71,6 +70,8 @@ layout (std140, binding = 1) readonly buffer SpheresBuffer {
 };
 layout (binding = 2) uniform SceneBuffer {
     int spheres_num, triangles_num, point_lights_num, aa, bvh_origins, bvh_leaves;
+    float ambient_bright;
+    DirectionalLight directional_light;
     Camera camera;
 } scene;
 layout (std140, binding = 3) readonly buffer PointLightsBuffer {
@@ -206,8 +207,8 @@ vec3 getSkyColor(Ray ray)
     return (pos * base) + ((1 - pos) * vec3(1.0, 1.0, 1.0));
 }
 
-vec3 GetPointLightVector(vec3 point, PointLight light) {
-    return normalize(light.position.xyz - point);
+vec3 GetPointLightVector(vec3 point, vec3 position) {
+    return normalize(position - point);
 }
 
 Hit getTrianglesIntersection(Hit intersection, Ray ray, int start_index, int end_index, float min_t, float max_t) {
@@ -235,7 +236,7 @@ Hit getTrianglesIntersection(Hit intersection, Ray ray, int start_index, int end
     return intersection;
 }
 
-Hit getAABBIntersection(Hit intersection, Ray ray) {
+/*Hit getAABBIntersection(Hit intersection, Ray ray) {
     for (int i = 0; i < scene.bvh_origins; i++) {
         BVHNode node = bvh_origins[i];
 
@@ -251,6 +252,126 @@ Hit getAABBIntersection(Hit intersection, Ray ray) {
     }
 
     return intersection;
+}*/
+
+Hit getSphereIntersection(Hit intersection, Ray ray, float min_t, float max_t) {
+    for (int i = 0; i < scene.spheres_num; i++) {
+		Sphere sphere = spheres[i];
+
+		vec2 sphere_hit = getSphereHit(ray, sphere);
+
+		if (sphere_hit.x < intersection.t && min_t < sphere_hit.x && sphere_hit.x < max_t) {
+			intersection.t = sphere_hit.x;
+			intersection.sphere = sphere;
+            intersection.is_triangle = false;
+            intersection.is_sphere = true;
+            intersection.is_aabb = false;
+		}
+		if (sphere_hit.y < intersection.t && min_t < sphere_hit.y && sphere_hit.y < max_t) {
+			intersection.t = sphere_hit.y;
+			intersection.sphere = sphere;
+            intersection.is_triangle = false;
+            intersection.is_sphere = true;
+            intersection.is_aabb = false;
+		}
+	}
+
+    return intersection;
+}
+
+Hit getBvhIntersection(Hit intersection, Ray ray, float min_t, float max_t) {
+    bool found = false;
+    float bvh_t = intersection.t;
+    BVHNode origin;
+
+    for (int i = 0; i < scene.bvh_origins; i++) {
+        BVHNode node = bvh_origins[i];
+
+        vec2 hit = getAABBHit(ray, node.box);
+
+        if (hit.x < bvh_t && min_t < hit.x && hit.x < max_t) {
+            found = true;
+            bvh_t = hit.x;
+            origin = node;
+        }
+        if (hit.y < bvh_t && min_t < hit.y && hit.y < max_t) {
+            found = true;
+            bvh_t = hit.y;
+            origin = node;
+        }
+    }
+
+
+    if (!found) {
+        return intersection;
+    }
+
+    BVHNode node = bvh_leaves[origin.left_node];
+    bool to_parent = false;
+
+    // 1 - left nodes, 2 - right nodes
+    while(true) {
+        if (to_parent) {
+            if (node.parent_node == -1 && node.right_sibling == -1) {
+                break;
+            }
+
+            node = bvh_leaves[node.parent_node];
+
+            // if we come from left - we need check right nodes
+            if (node.right_sibling != -1) {
+                to_parent = false;
+                node = bvh_leaves[node.right_sibling];
+            // if we come from right - we checked all nodes below, and we need to get higher
+            } else {
+                to_parent = true;
+                continue;
+            }
+        }
+
+        vec2 aabb_hit;
+
+        aabb_hit = getAABBHit(ray, node.box);
+
+        // if hit box
+        if (aabb_hit.x != INFINITY && aabb_hit.y != INFINITY) {
+            // not last node with triangles
+            if (node.left_node != -1 && node.right_node != -1) {
+                node = bvh_leaves[node.left_node];
+
+                continue;
+            // node with triangles
+            } else {
+                intersection = getTrianglesIntersection(
+                    intersection, 
+                    ray,
+                    node.triangle_index, 
+                    node.triangle_index + 1,
+                    min_t,
+                    max_t
+                );
+
+                if (node.right_sibling != -1) {
+                    node = bvh_leaves[node.right_sibling];
+                } else {
+                    to_parent = true;
+                }
+
+                continue;
+            }
+        // didn't hit box
+        } else {
+            if (node.right_sibling != -1) {
+                node = bvh_leaves[node.right_sibling];
+            } else {
+                to_parent = true;
+            }
+
+            continue;
+        }
+    }
+
+    return intersection;
 }
 
 Hit getIntersection(Ray ray, float min_t, float max_t) {
@@ -260,99 +381,9 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
     intersection.is_triangle = false;
     intersection.is_aabb = false;
 
-	for (int i = 0; i < scene.spheres_num; i++) {
-		Sphere sphere = spheres[i];
+	//intersection = getSphereIntersection(intersection, ray, min_t, max_t);
 
-		vec2 sphere_hit = getSphereHit(ray, sphere);
-
-		if (sphere_hit.x < intersection.t && min_t < sphere_hit.x && sphere_hit.x < max_t) {
-            intersection.is_sphere = true;
-			intersection.t = sphere_hit.x;
-			intersection.sphere = sphere;
-		}
-		if (sphere_hit.y < intersection.t && min_t < sphere_hit.y && sphere_hit.y < max_t) {
-            intersection.is_sphere = true;
-			intersection.t = sphere_hit.y;
-			intersection.sphere = sphere;
-		}
-	}
-
-    for (int i = 0; i < scene.bvh_origins; i++) {
-        BVHNode bvh_origin_node = bvh_origins[i];
-
-        vec2 aabb_hit_origin = getAABBHit(ray, bvh_origin_node.box);
-
-        if(aabb_hit_origin.x == INFINITY && aabb_hit_origin.y == INFINITY) {
-            continue;
-        }
-
-        BVHNode node = bvh_leaves[bvh_origin_node.left_node];
-        bool to_parent = false;
-
-        // 1 - left nodes, 2 - right nodes
-        while(true) {
-            if (to_parent) {
-                if (node.parent_node == -1 && node.right_sibling == -1) {
-                    break;
-                }
-
-                node = bvh_leaves[node.parent_node];
-
-                // if we come from left - we need check right nodes
-                if (node.right_sibling != -1) {
-                    to_parent = false;
-                    node = bvh_leaves[node.right_sibling];
-                // if we come from right - we checked all nodes below, and we need to get higher
-                } else {
-                    to_parent = true;
-                    continue;
-                }
-            }
-
-            vec2 aabb_hit;
-
-            aabb_hit = getAABBHit(ray, node.box);
-
-            // if hit box
-            if (aabb_hit.x != INFINITY && aabb_hit.y != INFINITY) {
-                // not last node with triangles
-                if (node.left_node != -1 && node.right_node != -1) {
-                    node = bvh_leaves[node.left_node];
-
-                    continue;
-                // node with triangles
-                } else {
-                    intersection = getTrianglesIntersection(
-                        intersection, 
-                        ray,
-                        node.triangle_index, 
-                        node.triangle_index + 1,
-                        min_t,
-                        max_t
-                    );
-
-                    if (node.right_sibling != -1) {
-                        node = bvh_leaves[node.right_sibling];
-                    } else {
-                        to_parent = true;
-                    }
-
-                    continue;
-                }
-            // didn't hit box
-            } else {
-                if (node.right_sibling != -1) {
-                    node = bvh_leaves[node.right_sibling];
-                } else {
-                    to_parent = true;
-                }
-
-                continue;
-            }
-        }
-    }
-
-    //intersection = getAABBIntersection(intersection, ray);
+    //intersection = getBvhIntersection(intersection, ray, min_t, max_t);
 
 	return intersection;
 }
@@ -391,6 +422,28 @@ vec3 getAABBNormal(vec3 point, AABB box) {
     return normal;
 }
 
+struct ObjectInfo {
+    vec3 obj_color;
+    float obj_specular;
+};
+
+ObjectInfo getObjectInfoByHits(Hit intersection) {
+    ObjectInfo result;
+
+    if (intersection.is_sphere) {
+        result.obj_color = intersection.sphere.color.xyz;
+        result.obj_specular = intersection.sphere.specular;
+    } else if (intersection.is_triangle) {
+        result.obj_color = intersection.triangle.color.xyz;
+        result.obj_specular = intersection.triangle.specular;
+    } else if (intersection.is_aabb) {
+        result.obj_color = vec3(0.0, 1.0, 0.0);
+        result.obj_specular = -1;
+    }
+
+    return result;
+}
+
 const float light_size = 0.025;
 const vec3 offsets[8] = {
   vec3(-light_size, -light_size, -light_size),
@@ -405,31 +458,77 @@ const vec3 offsets[8] = {
 
 #define SHADOW_RAYS 1
 
-float getShadow(
+float getShadowPointLight(
     vec3 point,
     vec3 normal,
-    PointLight point_light
+    vec3 light_position
 ) {
     float intensity = 0.0f;
 
     for(int i = 0; i < SHADOW_RAYS; i++) {
-        vec3 light_point = point + offsets[i];
+        vec3 position = light_position + offsets[i];
 
-        vec3 light_vector = GetPointLightVector(light_point, point_light);
+        vec3 light_vector = GetPointLightVector(point, position);
 
         Ray shadow_ray;
         shadow_ray.origin = point + EPSILON * normal;
         shadow_ray.direction = light_vector;
-        Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, distance(light_point, point_light.position.xyz));
+        Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, distance(point, position));
 	    
         if (shadow_blocker.t != INFINITY) {
 		    intensity += 1.0f;
 	    }
     }
 
-    intensity /= 8;
+    intensity /= SHADOW_RAYS;
 
-    return intensity;
+    return 1.0f - intensity;
+}
+
+float getShadowDirectionalLight(
+    vec3 point,
+    vec3 normal,
+    vec3 light_vector
+) {
+    float intensity = 0.0f;
+
+    for(int i = 0; i < SHADOW_RAYS; i++) {
+        vec3 new_light_vector = light_vector + offsets[i];
+
+        Ray shadow_ray;
+        shadow_ray.origin = point + EPSILON * normal;
+        shadow_ray.direction = new_light_vector;
+        Hit shadow_blocker = getIntersection(shadow_ray, EPSILON, INFINITY);
+	    
+        if (shadow_blocker.t != INFINITY) {
+		    intensity += 1.0f;
+	    }
+    }
+
+    intensity /= SHADOW_RAYS;
+
+    return 1.0f - intensity;
+}
+
+vec3 CalculatePhongLight(
+    vec3 light_vector, vec3 view, vec3 normal, 
+    ObjectInfo obj_info, float shininess, float bright,
+    float shadow_intensity
+) {
+    vec3 light_color = vec3(1.0f); 
+    vec3 specular_color = vec3(0.0);
+
+    vec3 diffuse_color = light_color * max(dot(normal, light_vector), 0.0f) * bright;
+
+    if (obj_info.obj_specular != -1.0f) {
+        vec3 reflected = -reflect(light_vector, normal);
+        float r_dot_v = max(dot(reflected, view), 0.0f);
+        float specular_strength = pow(r_dot_v, shininess);
+
+        specular_color = obj_info.obj_specular * specular_strength * light_color;
+    }
+
+    return shadow_intensity * (diffuse_color + specular_color) * obj_info.obj_color;
 }
 
 vec3 ComputeLight(
@@ -438,45 +537,36 @@ vec3 ComputeLight(
     vec3 view,
     Hit intersection
 ) {
-    float bright = 0.0f;
     vec3 final_color = vec3(0.0f);
-    vec3 light_color = vec3(1.0f); 
 
-    vec3 obj_color;
-    float obj_specular;
+    ObjectInfo object_info = getObjectInfoByHits(intersection);
 
-    if (intersection.is_sphere) {
-        obj_color = intersection.sphere.color.xyz;
-        obj_specular = intersection.sphere.specular;
-    } else if (intersection.is_triangle) {
-        obj_color = intersection.triangle.color.xyz;
-        obj_specular = intersection.triangle.specular;
-    } else if (intersection.is_aabb) {
-        obj_color = vec3(0.0, 1.0, 0.0);
-        obj_specular = -1;
-    }
+    vec3 direction_light_position = scene.directional_light.direction.xyz;
+
+    float shadow_intensity = getShadowDirectionalLight(point, normal, direction_light_position);
+
+    final_color += CalculatePhongLight(
+        direction_light_position,
+        view, normal,
+        object_info, scene.directional_light.shininess, 
+        scene.directional_light.bright, shadow_intensity
+    );
 
     for (int i = 0; i < scene.point_lights_num; i++) {
         PointLight point_light = point_lights[i];
+        vec3 light_position = point_light.position.xyz;
 
-        vec3 lightVector = GetPointLightVector(point, point_light);
+        vec3 light_vector = GetPointLightVector(point, light_position);
 
-        float shadow_intensity = getShadow(point, normal, point_light);
+        float shadow_intensity = getShadowPointLight(point, normal, light_position);
 
-        vec3 diffuse_color = light_color * max(dot(normal, lightVector), 0.0f) * point_light.bright;
-
-        vec3 specular_color = vec3(0.0);
-
-        if (obj_specular != -1.0f) {
-            vec3 reflected = -reflect(lightVector, normal);
-            float r_dot_v = max(dot(reflected, view), 0.0f);
-            float specular_strength = pow(r_dot_v, point_light.shininess);
-
-            specular_color = obj_specular * specular_strength * light_color;
-        }
-
-        final_color += (1.0 - shadow_intensity) * (diffuse_color + specular_color) * obj_color;
+        final_color += CalculatePhongLight(
+            light_vector, view, normal,
+            object_info, point_light.shininess, point_light.bright, shadow_intensity
+        );
     }
+
+    final_color += scene.ambient_bright * object_info.obj_color;
 
     return final_color;
 }
@@ -494,8 +584,7 @@ vec3 traceRay(
         Hit intersection = getIntersection(ray, min_t, max_t);
 
         if (intersection.t == INFINITY) {
-            // final_color += reflection_intensity * getSkyColor(ray);
-            final_color += reflection_intensity * vec3(0.0f, 0.0f, 0.0f);
+            final_color += reflection_intensity * getSkyColor(ray);
             break;
         }
 
@@ -517,6 +606,7 @@ vec3 traceRay(
         final_color += reflection_intensity * local_color;
 
         float reflective;
+
         if (!intersection.is_triangle) {
             reflective = intersection.sphere.reflective;
         } else {

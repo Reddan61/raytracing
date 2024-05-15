@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-Scene::Scene(Camera *camera)
+Scene::Scene(Camera *camera, AmbientLight* ambient_light, DirectionalLight* directional_light)
 {
 	//this->SceneObjects = new std::vector<std::shared_ptr<Object>>;
 	//this->SceneLights = new std::vector<std::shared_ptr<Light>>;
@@ -15,6 +15,8 @@ Scene::Scene(Camera *camera)
 	//this->directionalLights = new std::vector<std::shared_ptr<DirectionalLight>>;
 
 	this->camera = camera;
+	this->setAmbientLight(ambient_light);
+	this->setDirectionalLight(directional_light);
 }
 
 Scene::~Scene()
@@ -26,8 +28,6 @@ Scene::~Scene()
 	delete this->meshes;
 	//delete this->SceneObjects;
 	//delete this->SceneLights;
-	//delete this->ambientLight;
-	//delete this->directionalLights;
 	//delete this->sky;
 }
 
@@ -112,13 +112,15 @@ Scene::SceneShader Scene::getSceneBuffer()
 
 	auto bvhs = this->getSceneBVHsBuffer();
 
-	result.aa = this->aa;
+	result.aa = this->aa; 
 	result.spheres_num = this->spheres->size();
 	result.triangles_num = this->getTrianglesNum();
 	result.point_ligts_num = this->pointLights->size();
 	result.camera = this->camera->getBufferStruct();
 	result.bvh_origins = bvhs.origins.size();
 	result.bvh_leaves = bvhs.leaves.size();
+	result.ambient_bright = this->ambientLight.get()->getBright();
+	result.directional_light = this->directionalLight.get()->getBuffer();
 
 	return result;
 }
@@ -134,11 +136,14 @@ Scene::BVHsShader Scene::getSceneBVHsBuffer()
 {
 	Scene::BVHsShader result;
 	size_t triangles_offset = 0;
+	size_t bvh_offset = 0;
 
 	for (size_t i = 0; i < this->meshes->size(); i++) {
 		TriangleMesh* mesh = this->meshes->at(i).get();
 
-		TriangleMesh::BVHBuffer buffer = mesh->getBVHBuffer(i, triangles_offset);
+		TriangleMesh::BVHBuffer buffer = mesh->getBVHBuffer(bvh_offset, triangles_offset);
+
+		bvh_offset += buffer.bvhs.size();
 		triangles_offset += mesh->getPolygonsSize();
 
 		result.origins.push_back(buffer.origin);
@@ -151,22 +156,19 @@ Scene::BVHsShader Scene::getSceneBVHsBuffer()
 	return result;
 }
 
-void Scene::addAmbientLight(AmbientLight* light)
+void Scene::setAmbientLight(AmbientLight* light)
 {
 	this->ambientLight = std::shared_ptr<AmbientLight>(light);
-	this->SceneLights->push_back(std::shared_ptr<Light>(light));
 }
 
-void Scene::addDirectionalLight(DirectionalLight* light)
+void Scene::setDirectionalLight(DirectionalLight* light)
 {
-	this->directionalLights->push_back(std::shared_ptr<DirectionalLight>(light));
-	this->SceneLights->push_back(std::shared_ptr<Light>(light));
+	this->directionalLight = std::shared_ptr<DirectionalLight>(light);
 }
 
 void Scene::addPointLight(PointLight* light)
 {
 	this->pointLights->push_back(std::shared_ptr<PointLight>(light));
-	//this->SceneLights->push_back(std::shared_ptr<Light>(light));
 }
 
 void Scene::setAA(int num)
