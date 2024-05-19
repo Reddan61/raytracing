@@ -285,72 +285,69 @@ Hit getBvhIntersection(Hit intersection, Ray ray, float min_t, float max_t) {
     BVHNode origin;
 
     for (int i = 0; i < scene.bvh_origins; i++) {
-        BVHNode node = bvh_origins[i];
+        BVHNode origin_node = bvh_origins[i];
 
-        vec2 hit = getAABBHit(ray, node.box);
+        vec2 hit = getAABBHit(ray, origin_node.box);
 
-        if (hit.x < bvh_t && min_t < hit.x && hit.x < max_t) {
-            found = true;
-            bvh_t = hit.x;
-            origin = node;
+        if (hit.x == INFINITY && hit.y == INFINITY) {
+            continue;
         }
-        if (hit.y < bvh_t && min_t < hit.y && hit.y < max_t) {
-            found = true;
-            bvh_t = hit.y;
-            origin = node;
-        }
-    }
 
+        BVHNode node = bvh_leaves[origin_node.left_node];
+        bool to_parent = false;
 
-    if (!found) {
-        return intersection;
-    }
+        // 1 - left nodes, 2 - right nodes
+        while(true) {
+            if (to_parent) {
+                if (node.parent_node == -1 && node.right_sibling == -1) {
+                    break;
+                }
 
-    BVHNode node = bvh_leaves[origin.left_node];
-    bool to_parent = false;
+                node = bvh_leaves[node.parent_node];
 
-    // 1 - left nodes, 2 - right nodes
-    while(true) {
-        if (to_parent) {
-            if (node.parent_node == -1 && node.right_sibling == -1) {
-                break;
+                // if we come from left - we need check right nodes
+                if (node.right_sibling != -1) {
+                    to_parent = false;
+                    node = bvh_leaves[node.right_sibling];
+                // if we come from right - we checked all nodes below, and we need to get higher
+                } else {
+                    to_parent = true;
+                    continue;
+                }
             }
 
-            node = bvh_leaves[node.parent_node];
+            vec2 aabb_hit;
 
-            // if we come from left - we need check right nodes
-            if (node.right_sibling != -1) {
-                to_parent = false;
-                node = bvh_leaves[node.right_sibling];
-            // if we come from right - we checked all nodes below, and we need to get higher
+            aabb_hit = getAABBHit(ray, node.box);
+
+            // if hit box
+            if (aabb_hit.x != INFINITY && aabb_hit.y != INFINITY) {
+                // not last node with triangles
+                if (node.left_node != -1 && node.right_node != -1) {
+                    node = bvh_leaves[node.left_node];
+
+                    continue;
+                // node with triangles
+                } else {
+                    intersection = getTrianglesIntersection(
+                        intersection, 
+                        ray,
+                        node.triangle_index, 
+                        node.triangle_index + 1,
+                        min_t,
+                        max_t
+                    );
+
+                    if (node.right_sibling != -1) {
+                        node = bvh_leaves[node.right_sibling];
+                    } else {
+                        to_parent = true;
+                    }
+
+                    continue;
+                }
+            // didn't hit box
             } else {
-                to_parent = true;
-                continue;
-            }
-        }
-
-        vec2 aabb_hit;
-
-        aabb_hit = getAABBHit(ray, node.box);
-
-        // if hit box
-        if (aabb_hit.x != INFINITY && aabb_hit.y != INFINITY) {
-            // not last node with triangles
-            if (node.left_node != -1 && node.right_node != -1) {
-                node = bvh_leaves[node.left_node];
-
-                continue;
-            // node with triangles
-            } else {
-                intersection = getTrianglesIntersection(
-                    intersection, 
-                    ray,
-                    node.triangle_index, 
-                    node.triangle_index + 1,
-                    min_t,
-                    max_t
-                );
-
                 if (node.right_sibling != -1) {
                     node = bvh_leaves[node.right_sibling];
                 } else {
@@ -359,18 +356,9 @@ Hit getBvhIntersection(Hit intersection, Ray ray, float min_t, float max_t) {
 
                 continue;
             }
-        // didn't hit box
-        } else {
-            if (node.right_sibling != -1) {
-                node = bvh_leaves[node.right_sibling];
-            } else {
-                to_parent = true;
-            }
-
-            continue;
         }
     }
-
+    
     return intersection;
 }
 
@@ -381,9 +369,9 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
     intersection.is_triangle = false;
     intersection.is_aabb = false;
 
-	//intersection = getSphereIntersection(intersection, ray, min_t, max_t);
+	intersection = getSphereIntersection(intersection, ray, min_t, max_t);
 
-    //intersection = getBvhIntersection(intersection, ray, min_t, max_t);
+    intersection = getBvhIntersection(intersection, ray, min_t, max_t);
 
 	return intersection;
 }

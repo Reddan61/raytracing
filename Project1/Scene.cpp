@@ -26,6 +26,8 @@ Scene::~Scene()
 	//delete this->triangles;
 	delete this->pointLights;
 	delete this->meshes;
+
+	delete this->bvhs_shader;
 	//delete this->SceneObjects;
 	//delete this->SceneLights;
 	//delete this->sky;
@@ -44,6 +46,9 @@ void Scene::addSphere(Sphere* sphere)
 void Scene::addMesh(TriangleMesh* mesh)
 {
 	this->meshes->push_back(std::shared_ptr<TriangleMesh>(mesh));
+
+	this->update_triangles_num(mesh->getTrianglesNum());
+	this->updateSceneBVHsBuffer();
 }
 
 std::vector<Sphere::SphereShader> Scene::getSpheresBuffer()
@@ -71,7 +76,7 @@ std::vector<Triangle::TriangleShader> Scene::getTrianglesBuffer()
 	result.reserve(this->getTrianglesNum());
 
 	for (int i = 0; i < this->meshes->size(); i++) {
-		auto polygons = this->meshes->at(i).get()->getPolygons();
+		auto polygons = this->meshes->at(i).get()->getTriangles();
 
 		for (int j = 0; j < polygons->size(); j++) {
 			result.push_back(polygons->at(j)->getShader());
@@ -117,8 +122,8 @@ Scene::SceneShader Scene::getSceneBuffer()
 	result.triangles_num = this->getTrianglesNum();
 	result.point_ligts_num = this->pointLights->size();
 	result.camera = this->camera->getBufferStruct();
-	result.bvh_origins = bvhs.origins.size();
-	result.bvh_leaves = bvhs.leaves.size();
+	result.bvh_origins = bvhs->origins.size();
+	result.bvh_leaves = bvhs->leaves.size();
 	result.ambient_bright = this->ambientLight.get()->getBright();
 	result.directional_light = this->directionalLight.get()->getBuffer();
 
@@ -132,11 +137,26 @@ VkDeviceSize Scene::getSceneBufferSize()
 	return size;
 }
 
-Scene::BVHsShader Scene::getSceneBVHsBuffer()
+Scene::BVHsShader* Scene::getSceneBVHsBuffer()
 {
-	Scene::BVHsShader result;
+	return this->bvhs_shader;
+}
+
+void Scene::updateSceneBVHsBuffer()
+{
+	if (this->bvhs_shader == nullptr) {
+		this->bvhs_shader = new Scene::BVHsShader();
+	}
+
 	size_t triangles_offset = 0;
 	size_t bvh_offset = 0;
+
+	this->bvhs_shader->origin_size = 0;
+	this->bvhs_shader->leaves_size = 0;
+	this->bvhs_shader->origins.clear();
+	this->bvhs_shader->origins.shrink_to_fit();	
+	this->bvhs_shader->leaves.clear();
+	this->bvhs_shader->leaves.shrink_to_fit();
 
 	for (size_t i = 0; i < this->meshes->size(); i++) {
 		TriangleMesh* mesh = this->meshes->at(i).get();
@@ -144,16 +164,14 @@ Scene::BVHsShader Scene::getSceneBVHsBuffer()
 		TriangleMesh::BVHBuffer buffer = mesh->getBVHBuffer(bvh_offset, triangles_offset);
 
 		bvh_offset += buffer.bvhs.size();
-		triangles_offset += mesh->getPolygonsSize();
+		triangles_offset += mesh->getTrianglesNum();
 
-		result.origins.push_back(buffer.origin);
-		result.leaves.insert(result.leaves.end(), buffer.bvhs.begin(), buffer.bvhs.end());
+		this->bvhs_shader->origins.push_back(buffer.origin);
+		this->bvhs_shader->leaves.insert(this->bvhs_shader->leaves.end(), buffer.bvhs.begin(), buffer.bvhs.end());
 	}
 
-	result.origin_size = result.origins.size() * sizeof(TriangleMesh::BVHShader);
-	result.leaves_size = result.leaves.size() * sizeof(TriangleMesh::BVHShader);
-
-	return result;
+	this->bvhs_shader->origin_size = this->bvhs_shader->origins.size() * sizeof(TriangleMesh::BVHShader);
+	this->bvhs_shader->leaves_size = this->bvhs_shader->leaves.size() * sizeof(TriangleMesh::BVHShader);
 }
 
 void Scene::setAmbientLight(AmbientLight* light)
@@ -184,13 +202,12 @@ void Scene::update(GLFWwindow* window, float delta)
 
 size_t Scene::getTrianglesNum()
 {
-	size_t result = 0;
+	return this->triangles_num;
+}
 
-	for (int i = 0; i < this->meshes->size(); i++) {
-		result += this->meshes->at(i).get()->getPolygonsSize();
-	}
-
-	return result;
+void Scene::update_triangles_num(size_t plus_num)
+{
+	this->triangles_num += plus_num;
 }
 
 std::vector<std::shared_ptr<Object>>* Scene::getSceneObjects()

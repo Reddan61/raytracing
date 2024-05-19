@@ -1,0 +1,12 @@
+#pragma once
+#include "../VulkanBuffer/VulkanBuffer.h"
+
+class VulkanStorageBuffer : public VulkanBuffer
+{
+public:
+	VulkanStorageBuffer(VulkanInit* vulkan_init, bool local_device = true);
+	~VulkanStorageBuffer();
+
+	void create_buffer(const void *buffer_data, VkDeviceSize buffer_size) override;
+	void update(const void* buffer_data, VkDeviceSize buffer_size) override;
+};

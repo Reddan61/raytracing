@@ -17,7 +17,7 @@ static std::vector<char> readFile(const std::string& filename) {
     return buffer;
 }
 
-Vulkan::Vulkan(Window* window)
+Vulkan::Vulkan(GLFWwindow* window, Scene* scene)
 {
     this->vulkan_init = new VulkanInit(window);
 
@@ -31,14 +31,14 @@ Vulkan::Vulkan(Window* window)
     this->create_graphics_pipe_line();
     
     //compute
-    this->create_scene_buffer(window);
-    this->create_spheres_buffer(window);
-    this->create_triangles_buffer(window);
-    this->create_bvhs_buffers(window);
-    this->create_point_lights_buffer(window);
+    this->create_scene_buffer(scene);
+    this->create_spheres_buffer(scene);
+    this->create_triangles_buffer(scene);
+    this->create_bvhs_buffers(scene);
+    this->create_point_lights_buffer(scene);
     this->create_compute_descriptor_set_layout();
     this->create_compute_descriptor_pool();
-    this->create_compute_descriptor_sets(window);
+    this->create_compute_descriptor_sets();
     this->create_compute_pipe_line();
 
     this->create_command_buffers();
@@ -49,23 +49,15 @@ Vulkan::Vulkan(Window* window)
 
 Vulkan::~Vulkan()
 {
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), this->bvhs_origins_buffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), this->bvhs_origins_buffer_memory, nullptr); 
-    
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), this->bvhs_leaves_buffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), this->bvhs_leaves_buffer_memory, nullptr);
+    delete this->bvhs_origins_buffer;
+    delete this->bvhs_leaves_buffer;
 
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), this->triangles_buffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), this->triangles_buffer_memory, nullptr);
+    delete this->spheres_buffer;
+    delete this->triangles_buffer;
 
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), this->point_lights_buffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), this->point_lights_buffer_memory, nullptr);
+    delete this->point_lights_buffer;
 
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), this->scene_buffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), this->scene_buffer_memory, nullptr);
-
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), this->spheres_buffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), this->spheres_buffer_memory, nullptr);
+    delete this->scene_buffer;
 
     for (size_t i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyImage(this->vulkan_init->getLogicalDevice(), this->screen_images[i], nullptr);
@@ -98,6 +90,11 @@ Vulkan::~Vulkan()
     }
 
     delete this->vulkan_init;
+}
+
+void Vulkan::stop()
+{
+    vkDeviceWaitIdle(this->vulkan_init->getLogicalDevice());
 }
 
 void Vulkan::create_graphics_pipe_line()
@@ -397,7 +394,7 @@ void Vulkan::create_sync_objects()
     }
 }
 
-void Vulkan::draw_frame(Window *window)
+void Vulkan::draw_frame(GLFWwindow* window, Scene* scene)
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -405,7 +402,7 @@ void Vulkan::draw_frame(Window *window)
     // Compute submission        
     vkWaitForFences(this->vulkan_init->getLogicalDevice(), 1, &compute_in_flight_fences[current_frame], VK_TRUE, UINT64_MAX);
 
-    this->update_scene_buffer(window);
+    this->update_buffers(scene);
 
     vkResetFences(this->vulkan_init->getLogicalDevice(), 1, &compute_in_flight_fences[current_frame]);
 
@@ -501,182 +498,75 @@ VkShaderModule Vulkan::create_shader_module(const std::vector<char>& code)
     return shaderModule;
 }
 
-void Vulkan::create_scene_buffer(Window* window)
+void Vulkan::create_scene_buffer(Scene* scene)
 {
-    auto scene = window->scene->getSceneBuffer();
-    VkDeviceSize bufferSize = window->scene->getSceneBufferSize();
+    auto scene_buffer_data = scene->getSceneBuffer();
+    VkDeviceSize bufferSize = scene->getSceneBufferSize();
 
-    //VkBuffer stagingBuffer;
-    //VkDeviceMemory stagingBufferMemory;
+    this->scene_buffer = new VulkanUniformBuffer(this->vulkan_init, false);
+    this->scene_buffer->create_buffer(&scene_buffer_data, bufferSize);
 
     //this->create_buffer(
     //    bufferSize,
-    //    VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    //    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
     //    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    //    stagingBuffer,
-    //    stagingBufferMemory
+    //    this->scene_buffer,
+    //    this->scene_buffer_memory
     //);
 
-    this->create_buffer(
-        bufferSize,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        this->scene_buffer,
-        this->scene_buffer_memory
-    );
-
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), this->scene_buffer_memory, 0, bufferSize, 0, &this->scene_buffer_mapped);
+    //vkMapMemory(this->vulkan_init->getLogicalDevice(), this->scene_buffer_memory, 0, bufferSize, 0, &this->scene_buffer_mapped);
 }
 
-void Vulkan::update_scene_buffer(Window* window)
+void Vulkan::update_buffers(Scene* scene)
 {
-    auto scene = window->scene->getSceneBuffer();
-    auto scene_size = window->scene->getSceneBufferSize();
+    auto scene_data = scene->getSceneBuffer();
+    auto scene_size = scene->getSceneBufferSize();
 
-    memcpy(this->scene_buffer_mapped, &scene, scene_size);
+    this->scene_buffer->update(&scene_data, scene_size);
 }
 
-void Vulkan::create_spheres_buffer(Window* window)
+void Vulkan::create_spheres_buffer(Scene* scene)
 {
-    auto spheres = window->scene->getSpheresBuffer();
+    auto spheres = scene->getSpheresBuffer();
 
-    VkDeviceSize bufferSize = window->scene->getSpheresBufferSize();
+    VkDeviceSize bufferSize = scene->getSpheresBufferSize();
 
-    this->create_buffer(
-        bufferSize,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        this->spheres_buffer,
-        this->spheres_buffer_memory
-    );
-
-    void* data;
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), this->spheres_buffer_memory, 0, bufferSize, 0, &data);
-        memcpy(data, spheres.data(), bufferSize);
-    vkUnmapMemory(this->vulkan_init->getLogicalDevice(), this->spheres_buffer_memory);
+    this->spheres_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->spheres_buffer->create_buffer(spheres.data(), bufferSize);
 }
 
-void Vulkan::create_triangles_buffer(Window* window)
+void Vulkan::create_triangles_buffer(Scene* scene)
 {
-    auto triangles = window->scene->getTrianglesBuffer();
+    auto triangles = scene->getTrianglesBuffer();
 
-    VkDeviceSize bufferSize = window->scene->getTrianglesBufferSize();
+    VkDeviceSize bufferSize = scene->getTrianglesBufferSize();
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-
-    this->create_buffer(
-        bufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer,
-        stagingBufferMemory
-    );
-
-    void* data;
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, triangles.data(), bufferSize);
-    vkUnmapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory);
-
-    this->create_buffer(
-        bufferSize,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        this->triangles_buffer,
-        this->triangles_buffer_memory
-    );
-
-    this->copy_buffer(stagingBuffer, this->triangles_buffer, bufferSize);
-
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory, nullptr);
+    this->triangles_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->triangles_buffer->create_buffer(triangles.data(), bufferSize);
 }
 
-void Vulkan::create_bvhs_buffers(Window* window)
+void Vulkan::create_bvhs_buffers(Scene* scene)
 {
-    auto bvh = window->scene->getSceneBVHsBuffer();
+    auto bvh = scene->getSceneBVHsBuffer();
 
-    VkBuffer stagingBuffer1;
-    VkDeviceMemory stagingBufferMemory1;
+    this->bvhs_origins_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->bvhs_leaves_buffer = new VulkanStorageBuffer(this->vulkan_init);
 
-    this->create_buffer(
-        bvh.origin_size,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer1,
-        stagingBufferMemory1
-    );
-
-    void* data;
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory1, 0, bvh.origin_size, 0, &data);
-        memcpy(data, bvh.origins.data(), bvh.origin_size);
-    vkUnmapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory1);
-
-    this->create_buffer(
-        bvh.origin_size,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        this->bvhs_origins_buffer,
-        this->bvhs_origins_buffer_memory
-    );  
-
-
-    this->copy_buffer(stagingBuffer1, this->bvhs_origins_buffer, bvh.origin_size);
-
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), stagingBuffer1, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory1, nullptr);
-
-    VkBuffer stagingBuffer2;
-    VkDeviceMemory stagingBufferMemory2;
-
-    this->create_buffer(
-        bvh.leaves_size,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer2,
-        stagingBufferMemory2
-    );
-
-    void* data1;
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory2, 0, bvh.leaves_size, 0, &data1);
-        memcpy(data1, bvh.leaves.data(), bvh.leaves_size);
-    vkUnmapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory2);
-
-    this->create_buffer(
-        bvh.leaves_size,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        this->bvhs_leaves_buffer,
-        this->bvhs_leaves_buffer_memory
-    );
-
-    this->copy_buffer(stagingBuffer2, this->bvhs_leaves_buffer, bvh.leaves_size);
-
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), stagingBuffer2, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory2, nullptr);
+    this->bvhs_origins_buffer->create_buffer(bvh->origins.data(), bvh->origin_size);
+    this->bvhs_leaves_buffer->create_buffer(bvh->leaves.data(), bvh->leaves_size);
 }
 
-void Vulkan::create_point_lights_buffer(Window* window)
+void Vulkan::create_point_lights_buffer(Scene* scene)
 {
-    auto pointLights = window->scene->getPointLightsBuffer();
+    auto pointLights = scene->getPointLightsBuffer();
 
-    VkDeviceSize bufferSize = window->scene->getPointLightsBufferSize();
+    VkDeviceSize bufferSize = scene->getPointLightsBufferSize();
 
-    this->create_buffer(
-        bufferSize,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        this->point_lights_buffer,
-        this->point_lights_buffer_memory
-    );
-
-    void* data;
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), this->point_lights_buffer_memory, 0, bufferSize, 0, &data);
-        memcpy(data, pointLights.data(), bufferSize);
-    vkUnmapMemory(this->vulkan_init->getLogicalDevice(), this->point_lights_buffer_memory);
+    this->point_lights_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->point_lights_buffer->create_buffer(pointLights.data(), bufferSize);
 }
 
-void Vulkan::set_framebuffer_resized(bool isResized)
+void Vulkan::on_resize(bool isResized)
 {
     this->framebuffer_resized = isResized;
 }
@@ -693,17 +583,6 @@ uint32_t Vulkan::find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags pro
     }
 
     throw std::runtime_error("failed to find suitable memory type!");
-}
-
-void Vulkan::copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
-{
-    VkCommandBuffer commandBuffer = this->begin_single_time_commands();
-
-    VkBufferCopy copyRegion{};
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-  
-    this->end_single_time_commands(commandBuffer);
 }
 
 void Vulkan::create_graphics_descriptor_pool()
@@ -1134,7 +1013,7 @@ void Vulkan::create_compute_descriptor_set_layout()
     }
 }
 
-void Vulkan::create_compute_descriptor_sets(Window *window) {
+void Vulkan::create_compute_descriptor_sets() {
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, this->compute_descriptor_set_layout);
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -1164,9 +1043,9 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
         descriptorWrites[0].pImageInfo = &imageInfo;
 
         VkDescriptorBufferInfo spheresBufferInfo{};
-        spheresBufferInfo.buffer = this->spheres_buffer;
+        spheresBufferInfo.buffer = this->spheres_buffer->getBuffer();
         spheresBufferInfo.offset = 0;
-        spheresBufferInfo.range = window->scene->getSpheresBufferSize();
+        spheresBufferInfo.range = this->spheres_buffer->getSize();
 
         descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[1].dstSet = this->compute_descriptor_sets[i];
@@ -1177,9 +1056,9 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
         descriptorWrites[1].pBufferInfo = &spheresBufferInfo;
 
         VkDescriptorBufferInfo sceneBufferInfo{};
-        sceneBufferInfo.buffer = this->scene_buffer;
+        sceneBufferInfo.buffer = this->scene_buffer->getBuffer();
         sceneBufferInfo.offset = 0;
-        sceneBufferInfo.range = window->scene->getSceneBufferSize();
+        sceneBufferInfo.range = this->scene_buffer->getSize();
 
         descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[2].dstSet = this->compute_descriptor_sets[i];
@@ -1190,9 +1069,9 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
         descriptorWrites[2].pBufferInfo = &sceneBufferInfo;
 
         VkDescriptorBufferInfo pointLightsBufferInfo{};
-        pointLightsBufferInfo.buffer = this->point_lights_buffer;
+        pointLightsBufferInfo.buffer = this->point_lights_buffer->getBuffer();
         pointLightsBufferInfo.offset = 0;
-        pointLightsBufferInfo.range = window->scene->getPointLightsBufferSize();
+        pointLightsBufferInfo.range = this->point_lights_buffer->getSize();
 
         descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[3].dstSet = this->compute_descriptor_sets[i];
@@ -1203,9 +1082,9 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
         descriptorWrites[3].pBufferInfo = &pointLightsBufferInfo;
 
         VkDescriptorBufferInfo trianglesBufferInfo{};
-        trianglesBufferInfo.buffer = this->triangles_buffer;
+        trianglesBufferInfo.buffer = this->triangles_buffer->getBuffer();
         trianglesBufferInfo.offset = 0;
-        trianglesBufferInfo.range = window->scene->getTrianglesBufferSize();
+        trianglesBufferInfo.range = this->triangles_buffer->getSize();
 
         descriptorWrites[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[4].dstSet = this->compute_descriptor_sets[i];
@@ -1215,12 +1094,10 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
         descriptorWrites[4].descriptorCount = 1;
         descriptorWrites[4].pBufferInfo = &trianglesBufferInfo; 
 
-        auto bvh = window->scene->getSceneBVHsBuffer();
-        
         VkDescriptorBufferInfo bvhOriginsBufferInfo{};
-        bvhOriginsBufferInfo.buffer = this->bvhs_origins_buffer;
+        bvhOriginsBufferInfo.buffer = this->bvhs_origins_buffer->getBuffer();
         bvhOriginsBufferInfo.offset = 0;
-        bvhOriginsBufferInfo.range = bvh.origin_size;
+        bvhOriginsBufferInfo.range = this->bvhs_origins_buffer->getSize();
 
         descriptorWrites[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[5].dstSet = this->compute_descriptor_sets[i];
@@ -1231,9 +1108,9 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
         descriptorWrites[5].pBufferInfo = &bvhOriginsBufferInfo;  
         
         VkDescriptorBufferInfo bvhLeavesBufferInfo{};
-        bvhLeavesBufferInfo.buffer = this->bvhs_leaves_buffer;
+        bvhLeavesBufferInfo.buffer = this->bvhs_leaves_buffer->getBuffer();
         bvhLeavesBufferInfo.offset = 0;
-        bvhLeavesBufferInfo.range = bvh.leaves_size;
+        bvhLeavesBufferInfo.range = this->bvhs_leaves_buffer->getSize();
 
         descriptorWrites[6].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[6].dstSet = this->compute_descriptor_sets[i];
@@ -1257,31 +1134,4 @@ void Vulkan::create_compute_descriptor_sets(Window *window) {
             descriptorWrites.data(), 0, nullptr
         );
     }
-}
-
-void Vulkan::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-{
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (vkCreateBuffer(this->vulkan_init->getLogicalDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create buffer!");
-    }
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(this->vulkan_init->getLogicalDevice(), buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = this->find_memory_type(memRequirements.memoryTypeBits, properties);
-
-    if (vkAllocateMemory(this->vulkan_init->getLogicalDevice(), &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate buffer memory!");
-    }
-
-    vkBindBufferMemory(this->vulkan_init->getLogicalDevice(), buffer, bufferMemory, 0);
 }

@@ -28,8 +28,8 @@ public:
 
 	glm::vec3 getNormal(const glm::vec3 const& point, const glm::vec3 const& direction) override;
 
-	std::vector<Triangle*>* getPolygons();
-	size_t getPolygonsSize();
+	std::vector<Triangle*>* getTriangles();
+	size_t getTrianglesNum();
 
 	void update(GLFWwindow* window, float delta) override;
 

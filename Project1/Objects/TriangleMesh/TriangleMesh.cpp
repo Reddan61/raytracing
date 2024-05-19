@@ -28,12 +28,12 @@ glm::vec3 TriangleMesh::getNormal(const glm::vec3 const& point, const glm::vec3 
     return glm::vec3();
 }
 
-std::vector<Triangle*>* TriangleMesh::getPolygons()
+std::vector<Triangle*>* TriangleMesh::getTriangles()
 {
     return this->polygons;
 }
 
-size_t TriangleMesh::getPolygonsSize()
+size_t TriangleMesh::getTrianglesNum()
 {
     return this->polygons->size();
 }

@@ -51,7 +51,8 @@ public:
 	Scene::SceneShader getSceneBuffer();
 	VkDeviceSize getSceneBufferSize();
 
-	Scene::BVHsShader getSceneBVHsBuffer();
+	Scene::BVHsShader* getSceneBVHsBuffer();
+	void updateSceneBVHsBuffer();
 
 	void setAmbientLight(AmbientLight* light);
 	void setDirectionalLight(DirectionalLight* light);
@@ -76,7 +77,11 @@ private:
 	Sky* sky = nullptr;
 
 	size_t getTrianglesNum();
+	size_t triangles_num = 0;
+	Scene::BVHsShader* bvhs_shader = nullptr;
 
-	int aa = 2;
+	int aa = 1;
+
+	void update_triangles_num(size_t plus_num);
 };
 

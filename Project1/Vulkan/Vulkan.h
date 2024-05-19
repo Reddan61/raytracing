@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iostream>
 #include <vector>
 #include <array>
@@ -11,18 +10,20 @@
 #include <random>
 #include <chrono>
 
+#include "../Scene.h"
 #include "./VulkanInit/VulkanInit.h"
-
-class Window;
-class VulkanInit;
+#include "./VulkanBuffers/VulkanStorageBuffer/VulkanStorageBuffer.h"
+#include "./VulkanBuffers/VulkanUniformBuffer/VulkanUniformBuffer.h"
 
 class Vulkan
 {
-friend class Window;
-
 public:
-	Vulkan(Window *window);
+	Vulkan(GLFWwindow* window, Scene* scene);
 	~Vulkan();
+
+	void on_resize(bool isResized);
+	void draw_frame(GLFWwindow* window, Scene* scene);
+	void stop();
 private:
 	const int MAX_FRAMES_IN_FLIGHT = 2;
 	uint32_t current_frame = 0;
@@ -33,7 +34,6 @@ private:
 
 	VkPipeline graphics_pipeline;
 	void create_command_buffers();
-	void set_framebuffer_resized(bool isResized);
 
 	VkDescriptorPool compute_descriptor_pool;
 	std::vector<VkDescriptorSet> compute_descriptor_sets;
@@ -42,33 +42,29 @@ private:
 	VkPipeline compute_pipeline;
 	std::vector<VkCommandBuffer> compute_command_buffers;
 
-	VkBuffer spheres_buffer;
-	VkDeviceMemory spheres_buffer_memory;
-	void create_spheres_buffer(Window* window);
+	VulkanStorageBuffer* spheres_buffer = nullptr;
+	void create_spheres_buffer(Scene* scene);
 
-	VkBuffer triangles_buffer;
-	VkDeviceMemory triangles_buffer_memory;
-	void create_triangles_buffer(Window* window);	
+	VulkanStorageBuffer* triangles_buffer = nullptr;
+	void create_triangles_buffer(Scene* scene);
 	
-	VkBuffer bvhs_origins_buffer;
-	VkDeviceMemory bvhs_origins_buffer_memory;
-	VkBuffer bvhs_leaves_buffer;
-	VkDeviceMemory bvhs_leaves_buffer_memory;
-	void create_bvhs_buffers(Window* window);
+	VulkanStorageBuffer* bvhs_origins_buffer = nullptr;
+	VulkanStorageBuffer* bvhs_leaves_buffer = nullptr;
+	void create_bvhs_buffers(Scene* scene);
 
-	VkBuffer point_lights_buffer;
-	VkDeviceMemory point_lights_buffer_memory;
-	void create_point_lights_buffer(Window* window);
+	VulkanStorageBuffer* point_lights_buffer = nullptr;
+	void create_point_lights_buffer(Scene* scene);
 		
-	VkBuffer scene_buffer;
-	VkDeviceMemory scene_buffer_memory;
-	void* scene_buffer_mapped;
-	void create_scene_buffer(Window* window);
-	void update_scene_buffer(Window* window);
+	//VkBuffer scene_buffer;
+	//VkDeviceMemory scene_buffer_memory;
+	//void* scene_buffer_mapped;
+	VulkanUniformBuffer* scene_buffer = nullptr;
+	void create_scene_buffer(Scene* scene);
+	void update_buffers(Scene* scene);
 
 	void create_compute_descriptor_pool();
 	void create_compute_descriptor_set_layout();
-	void create_compute_descriptor_sets(Window *window);
+	void create_compute_descriptor_sets();
 	void record_compute_command_buffer(VkCommandBuffer commandBuffer);
 	void create_compute_command_buffers();
 	void create_compute_pipe_line();
@@ -99,13 +95,9 @@ private:
 	std::vector<VkFence> compute_in_flight_fences;
 	void create_sync_objects();
 
-	void draw_frame(Window* window);
-
 	// utils
 	VkShaderModule create_shader_module(const std::vector<char>& code);
 	uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-	void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-	void copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void create_image(uint32_t width, uint32_t height,
 		VkFormat format, VkImageTiling tiling,
 		VkImageUsageFlags usage, VkMemoryPropertyFlags properties,

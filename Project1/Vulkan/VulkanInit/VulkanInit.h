@@ -1,13 +1,17 @@
 #pragma once
+#include <vector>
+#include <optional>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <set>
+#include <algorithm>
 #include "../../Config.h"
-#include "../../Window/Window.h"
-
-class Window;
 
 class VulkanInit
 {
 public:
-	VulkanInit(Window *window);
+	VulkanInit(GLFWwindow* window);
 	~VulkanInit();
 
 	VkDevice getLogicalDevice();
@@ -22,7 +26,7 @@ public:
 	std::vector<VkImageView> getSwapChainImageViews();
 	std::vector<VkFramebuffer> getSwapChainFrameBuffers();
 
-	void recreate_swapchain(Window* window);
+	void recreate_swapchain(GLFWwindow* window);
 	VkImageView create_image_view(VkImage image, VkFormat format);
 private:
 	struct QueueFamilyIndices {
@@ -65,10 +69,10 @@ private:
 	std::vector<VkFramebuffer> swap_chain_framebuffers;
 
 	VkApplicationInfo create_app_info();
-	VkInstanceCreateInfo create_instance_info(Window* window, VkApplicationInfo& app_info);
+	VkInstanceCreateInfo create_instance_info(VkApplicationInfo& app_info);
 	bool check_validation_layers_support();
 	void setup_debug_messegner();
-	void create_surface(Window* window);
+	void create_surface(GLFWwindow* window);
 	void pick_phys_device();
 	bool is_device_suitable(VkPhysicalDevice device);
 	VulkanInit::QueueFamilyIndices find_queue_families(VkPhysicalDevice device);
@@ -79,13 +83,15 @@ private:
 		const std::vector<VkSurfaceFormatKHR>& availableFormats
 	);
 	VkPresentModeKHR choose_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-	VkExtent2D choose_swap_extent(Window* window, const VkSurfaceCapabilitiesKHR& capabilities);
+	VkExtent2D choose_swap_extent(GLFWwindow* window, const VkSurfaceCapabilitiesKHR& capabilities);
 	void create_render_pass();
 	void create_command_pool();
 	void show_available_extensions();
 	void create_framebuffers();
 	void cleanup_swapchain();
-	void create_swap_chain(Window* window);
+	void create_swap_chain(GLFWwindow* window);
 	void create_image_views();
+
+	std::pair<uint32_t, const char**> get_required_vulkan_extensions();
 };
 

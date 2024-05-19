@@ -47,13 +47,13 @@ void DestroyDebugUtilsMessengerEXT(
     }
 }
 
-VulkanInit::VulkanInit(Window* window)
+VulkanInit::VulkanInit(GLFWwindow* window)
 {
     this->show_available_extensions();
 
     VkApplicationInfo app_info = this->create_app_info();
 
-    VkInstanceCreateInfo instance_info = this->create_instance_info(window, app_info);
+    VkInstanceCreateInfo instance_info = this->create_instance_info(app_info);
 
     VkResult result = vkCreateInstance(&instance_info, nullptr, &this->instance);
 
@@ -166,7 +166,7 @@ VkApplicationInfo VulkanInit::create_app_info()
     return appInfo;
 }
 
-VkInstanceCreateInfo VulkanInit::create_instance_info(Window* window, VkApplicationInfo& app_info)
+VkInstanceCreateInfo VulkanInit::create_instance_info(VkApplicationInfo& app_info)
 {
     if (!this->check_validation_layers_support()) {
         throw std::runtime_error("Validation layers requested, but not available!");
@@ -176,7 +176,7 @@ VkInstanceCreateInfo VulkanInit::create_instance_info(Window* window, VkApplicat
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &app_info;
 
-    auto extensions = window->get_required_from_vulkan_extensions();
+    auto extensions = this->get_required_vulkan_extensions();
 
     createInfo.enabledExtensionCount = extensions.first;
     createInfo.ppEnabledExtensionNames = extensions.second;
@@ -235,9 +235,9 @@ void VulkanInit::setup_debug_messegner()
     }
 }
 
-void VulkanInit::create_surface(Window* window)
+void VulkanInit::create_surface(GLFWwindow* window)
 {
-    if (glfwCreateWindowSurface(this->instance, window->_window, nullptr, &this->surface) != VK_SUCCESS) {
+    if (glfwCreateWindowSurface(this->instance, window, nullptr, &this->surface) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create window surface!");
     }
 }
@@ -409,7 +409,7 @@ void VulkanInit::create_logical_device()
     vkGetDeviceQueue(this->logical_device, indices.present_family.value(), 0, &this->present_queue);
 }
 
-void VulkanInit::create_swap_chain(Window* window)
+void VulkanInit::create_swap_chain(GLFWwindow* window)
 {
     SwapChainSupportDetails swapChainSupport = this->query_swap_chain_support(this->phys_device);
 
@@ -493,14 +493,14 @@ VkPresentModeKHR VulkanInit::choose_swap_present_mode(const std::vector<VkPresen
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D VulkanInit::choose_swap_extent(Window* window, const VkSurfaceCapabilitiesKHR& capabilities)
+VkExtent2D VulkanInit::choose_swap_extent(GLFWwindow* window, const VkSurfaceCapabilitiesKHR& capabilities)
 {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     }
     else {
         int width, height;
-        glfwGetFramebufferSize(window->_window, &width, &height);
+        glfwGetFramebufferSize(window, &width, &height);
 
         VkExtent2D actualExtent = {
             static_cast<uint32_t>(width),
@@ -521,6 +521,32 @@ void VulkanInit::create_image_views()
     for (uint32_t i = 0; i < this->swap_ñhain_images.size(); i++) {
         this->swap_chain_image_views[i] = this->create_image_view(this->swap_ñhain_images[i], this->swap_chain_image_format);
     }
+}
+
+std::pair<uint32_t, const char**> VulkanInit::get_required_vulkan_extensions()
+{
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    const short custom_extenstions_count = 1;
+
+    const char* custom_extenstions[custom_extenstions_count] = {
+        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+    };
+
+    uint32_t glfwExtensionCountWithCustom = glfwExtensionCount + custom_extenstions_count;
+
+    const char** result = new const char* [glfwExtensionCountWithCustom];
+
+    for (int i = 0; i < glfwExtensionCount; i++) {
+        result[i] = glfwExtensions[i];
+    }
+
+    for (int i = 0; i < custom_extenstions_count; i++) {
+        result[i + glfwExtensionCount] = custom_extenstions[i];
+    }
+
+    return std::pair<uint32_t, const char**>(glfwExtensionCountWithCustom, result);
 }
 
 VkImageView VulkanInit::create_image_view(VkImage image, VkFormat format)
@@ -655,13 +681,13 @@ void VulkanInit::cleanup_swapchain()
     vkDestroySwapchainKHR(this->logical_device, this->swap_chain, nullptr);
 }
 
-void VulkanInit::recreate_swapchain(Window* window)
+void VulkanInit::recreate_swapchain(GLFWwindow* window)
 {
     int width = 0, height = 0;
-    glfwGetFramebufferSize(window->_window, &width, &height);
+    glfwGetFramebufferSize(window, &width, &height);
 
     while (width == 0 || height == 0) {
-        glfwGetFramebufferSize(window->_window, &width, &height);
+        glfwGetFramebufferSize(window, &width, &height);
         glfwWaitEvents();
     }
 

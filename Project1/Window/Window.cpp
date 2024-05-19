@@ -15,7 +15,7 @@ Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT, Scene* scene)
     glfwSetWindowUserPointer(this->_window, this);
     glfwSetFramebufferSizeCallback(this->_window, framebufferResizeCallback);
 
-    this->vulkan = new Vulkan(this);
+    this->vulkan = new Vulkan(this->_window, this->scene);
 }
 
 Window::~Window()
@@ -56,7 +56,7 @@ void Window::run()
         this->draw();
     }
 
-    vkDeviceWaitIdle(this->vulkan->vulkan_init->getLogicalDevice());
+    this->vulkan->stop();
 }
 
 void Window::glfw_clean_up()
@@ -68,37 +68,11 @@ void Window::glfw_clean_up()
 void Window::draw()
 {
     if (this->vulkan != nullptr) {
-        this->vulkan->draw_frame(this);
+        this->vulkan->draw_frame(this->_window, this->scene);
     }
 }
 
 void Window::on_resize()
 {
-    this->vulkan->set_framebuffer_resized(true);
-}
-
-std::pair<uint32_t, const char**> Window::get_required_from_vulkan_extensions()
-{
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    const short custom_extenstions_count = 1;
-
-    const char* custom_extenstions[custom_extenstions_count] = { 
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME 
-    };
-
-    uint32_t glfwExtensionCountWithCustom = glfwExtensionCount + custom_extenstions_count;
-
-    const char** result = new const char*[glfwExtensionCountWithCustom];
-
-    for (int i = 0; i < glfwExtensionCount; i++) {
-        result[i] = glfwExtensions[i];
-    }
-
-    for (int i = 0; i < custom_extenstions_count; i++) {
-        result[i + glfwExtensionCount] = custom_extenstions[i];
-    }
-
-    return std::pair<uint32_t, const char**>(glfwExtensionCountWithCustom, result);
+    this->vulkan->on_resize(true);
 }

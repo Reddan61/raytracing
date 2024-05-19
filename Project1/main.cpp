@@ -35,10 +35,12 @@ int main() {
     TriangleMesh* sus = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
     TriangleMesh* sus2 = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
     TriangleMesh* sus3 = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
+    TriangleMesh* sus4 = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
     sus->changePosition(glm::vec3(5.0f, 0.0f, -5.0f));
     sus->rotate(90.0f, 0.0f);
     sus2->changePosition(glm::vec3(-5.0f, 0.0f, -5.0f));
     sus3->changePosition(glm::vec3(0.0f, 0.0f, 2.0f));
+    sus4->changePosition(glm::vec3(0.0f, 0.0f, -10.f));
     // TODO: убрать ограничение на вращение
     sus3->rotate(0.0f, -90.0f);
     sus2->rotate(0.0f, -180.0f);
@@ -63,6 +65,7 @@ int main() {
     scene->addMesh(sus);
     scene->addMesh(sus2);
     scene->addMesh(sus3);
+    scene->addMesh(sus4);
     //scene->addMesh(test);
 
     scene->addPointLight(pointLight1);
