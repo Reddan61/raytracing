@@ -78,10 +78,13 @@
     <ClCompile Include="Vulkan\VulkanBuffers\VulkanBuffer\VulkanBuffer.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\VulkanBuffers\VulkanStorageBuffer\VulkanStorageBuffer.cpp">
+    <ClCompile Include="Vulkan\VulkanBuffers\VulkanLocalBuffer\VulkanLocalBuffer.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\VulkanBuffers\VulkanUniformBuffer\VulkanUniformBuffer.cpp">
+    <ClCompile Include="Vulkan\VulkanBuffers\VulkanHostBuffer\VulkanHostBuffer.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation\Animation.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,10 +155,13 @@
     <ClInclude Include="Vulkan\VulkanBuffers\VulkanBuffer\VulkanBuffer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\VulkanBuffers\VulkanStorageBuffer\VulkanStorageBuffer.h">
+    <ClInclude Include="Vulkan\VulkanBuffers\VulkanLocalBuffer\VulkanLocalBuffer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\VulkanBuffers\VulkanUniformBuffer\VulkanUniformBuffer.h">
+    <ClInclude Include="Vulkan\VulkanBuffers\VulkanHostBuffer\VulkanHostBuffer.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\Animation.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

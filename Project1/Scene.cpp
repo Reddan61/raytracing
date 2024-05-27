@@ -194,10 +194,21 @@ void Scene::setAA(int num)
 	this->aa = num;
 }
 
+std::vector<std::shared_ptr<Sphere>>* Scene::getSpheres()
+{
+	return this->spheres;
+}
+
 
 void Scene::update(GLFWwindow* window, float delta)
 {
 	this->camera->update(window, delta);
+	
+	if (this->spheres != nullptr) {
+		for (size_t i = 0; i < this->spheres->size(); i++) {
+			this->spheres->at(i).get()->update(delta);
+		}
+	}
 }
 
 size_t Scene::getTrianglesNum()

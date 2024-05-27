@@ -31,7 +31,7 @@ public:
 	std::vector<Triangle*>* getTriangles();
 	size_t getTrianglesNum();
 
-	void update(GLFWwindow* window, float delta) override;
+	void update(float delta) override;
 
 	void changePosition(const glm::vec3 const& position) override;
 	void rotate(float xAngle, float yAngle);

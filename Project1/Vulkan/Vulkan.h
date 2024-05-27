@@ -12,8 +12,8 @@
 
 #include "../Scene.h"
 #include "./VulkanInit/VulkanInit.h"
-#include "./VulkanBuffers/VulkanStorageBuffer/VulkanStorageBuffer.h"
-#include "./VulkanBuffers/VulkanUniformBuffer/VulkanUniformBuffer.h"
+#include "./VulkanBuffers/VulkanLocalBuffer/VulkanLocalBuffer.h"
+#include "./VulkanBuffers/VulkanHostBuffer/VulkanHostBuffer.h"
 
 class Vulkan
 {
@@ -42,25 +42,23 @@ private:
 	VkPipeline compute_pipeline;
 	std::vector<VkCommandBuffer> compute_command_buffers;
 
-	VulkanStorageBuffer* spheres_buffer = nullptr;
+	VulkanLocalBuffer* spheres_buffer = nullptr;
 	void create_spheres_buffer(Scene* scene);
 
-	VulkanStorageBuffer* triangles_buffer = nullptr;
+	VulkanLocalBuffer* triangles_buffer = nullptr;
 	void create_triangles_buffer(Scene* scene);
 	
-	VulkanStorageBuffer* bvhs_origins_buffer = nullptr;
-	VulkanStorageBuffer* bvhs_leaves_buffer = nullptr;
+	VulkanLocalBuffer* bvhs_origins_buffer = nullptr;
+	VulkanLocalBuffer* bvhs_leaves_buffer = nullptr;
 	void create_bvhs_buffers(Scene* scene);
 
-	VulkanStorageBuffer* point_lights_buffer = nullptr;
+	VulkanLocalBuffer* point_lights_buffer = nullptr;
 	void create_point_lights_buffer(Scene* scene);
 		
-	//VkBuffer scene_buffer;
-	//VkDeviceMemory scene_buffer_memory;
-	//void* scene_buffer_mapped;
-	VulkanUniformBuffer* scene_buffer = nullptr;
+	VulkanHostBuffer* scene_buffer = nullptr;
 	void create_scene_buffer(Scene* scene);
 	void update_buffers(Scene* scene);
+	void update_spheres(Scene* scene);
 
 	void create_compute_descriptor_pool();
 	void create_compute_descriptor_set_layout();

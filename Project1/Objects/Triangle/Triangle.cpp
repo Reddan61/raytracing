@@ -17,7 +17,7 @@ Triangle::Triangle(
     this->specular = specular;
     this->reflective = reflective;
     this->isSingleSide = false;
-    this->rotation_matrix = new RotationMatrix(0.0f, 0.0f);
+    this->rotation_matrix = new RotationMatrix(0.0f, 0.0f, false);
 
     this->calculateCentroid();
 }
@@ -110,6 +110,6 @@ Triangle::AABB Triangle::getAABB()
     return result;
 }
 
-void Triangle::update(GLFWwindow* window, float delta)
+void Triangle::update(float delta)
 {
 }

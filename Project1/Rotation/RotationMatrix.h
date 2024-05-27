@@ -4,7 +4,7 @@
 class RotationMatrix
 {
 public:
-	RotationMatrix(float xAngle, float yAngle);
+	RotationMatrix(float xAngle, float yAngle, bool isLockedY = true);
 	~RotationMatrix();
 
 	glm::mat4 getRotation();
@@ -18,9 +18,11 @@ public:
 	void setRotationX(float angle);
 	void setRotationY(float angle);
 
-	void update(GLFWwindow* window, float delta);
+	//void update(float delta);
 private:
 	void calculateRotation();
+
+	bool isLockedY = true;
 
 	glm::vec3 position;
 	glm::vec3 front;

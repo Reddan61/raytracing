@@ -17,8 +17,19 @@ glm::vec3 Sphere::getNormal(const glm::vec3 const& point, const glm::vec3 const&
 	return normal;
 }
 
-void Sphere::update(GLFWwindow* window, float delta)
+void Sphere::update(float delta)
 {
+	if (this->animation != nullptr) {
+		bool updated = this->animation->update(delta);
+
+		if (updated) {
+			glm::vec3 new_pos = this->animation->getPosition();
+
+			this->changePosition(new_pos);
+		}
+
+		this->is_updated = updated;
+	}
 }
 
 void Sphere::changePosition(const glm::vec3 const& position)
@@ -47,4 +58,9 @@ Sphere::SphereShader Sphere::getShader()
 VkDeviceSize Sphere::getBufferSize()
 {
 	return sizeof(Sphere::SphereShader);
+}
+
+bool Sphere::isUpdated()
+{
+	return this->is_updated;
 }

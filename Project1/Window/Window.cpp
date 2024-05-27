@@ -12,6 +12,8 @@ Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT, Scene* scene)
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     this->_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan window", nullptr, nullptr);
+    glfwMakeContextCurrent(this->_window);
+    glfwSwapInterval(0);
     glfwSetWindowUserPointer(this->_window, this);
     glfwSetFramebufferSizeCallback(this->_window, framebufferResizeCallback);
 

@@ -16,7 +16,6 @@ int main() {
     const uint32_t HEIGHT = 800;
 
     Camera *camera = new Camera(0.0f, 2.0f, 5.0f);
-    //Camera *camera = new Camera(2.0f, 100.0f, 100.0f);
 
     AmbientLight* ambient_light = new AmbientLight(0.1f);
     DirectionalLight* directional_light = new DirectionalLight(glm::vec3(0.0f, 1.0f, 1.0f), 0.2f, 2.0f);
@@ -37,15 +36,12 @@ int main() {
     TriangleMesh* sus3 = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
     TriangleMesh* sus4 = new TriangleMesh(Utils::loadOBJ("sus2.obj"));
     sus->changePosition(glm::vec3(5.0f, 0.0f, -5.0f));
-    sus->rotate(90.0f, 0.0f);
+    sus->rotate(0.0f, 180.0f);
     sus2->changePosition(glm::vec3(-5.0f, 0.0f, -5.0f));
     sus3->changePosition(glm::vec3(0.0f, 0.0f, 2.0f));
     sus4->changePosition(glm::vec3(0.0f, 0.0f, -10.f));
-    // TODO: убрать ограничение на вращение
     sus3->rotate(0.0f, -90.0f);
     sus2->rotate(0.0f, -180.0f);
-
-    TriangleMesh* klee = new TriangleMesh(Utils::loadOBJ("Klee.obj"));
 
     PointLight* pointLight1 = new PointLight(glm::vec3(4.0f, 10.0f, 0.0), 0.4f, 128.0f);
     PointLight* pointLight2 = new PointLight(glm::vec3(-4.0f, 2.0f, 0.0), 0.4f, 32.0f);
@@ -54,14 +50,20 @@ int main() {
     PointLight* pointLight5 = new PointLight(glm::vec3(0.0f, 2.0f, -3.0f), 0.4f, 128.0f);
     PointLight* pointLight6 = new PointLight(glm::vec3(0.0f, 2.0f, 3.0f), 0.4f, 128.0f);
 
+    Animation* sphere1_animation = new Animation(sphere1->getPosition(), glm::vec3(10.0f, 1.0f, -6.0f), 1.0f, true);
+    sphere1->setAnimation(sphere1_animation);
+    
+    Animation* sphere2_animation = new Animation(sphere2->getPosition(), glm::vec3(2.5, 10.0, -6.0), 1.0f, true);
+    sphere2->setAnimation(sphere2_animation);
+
     scene->addSphere(sphere1);
+    scene->addSphere(sphere2);
     //scene->addSphere(sphere2);
     //scene->addSphere(sphere3);
-    //scene->addSphere(sphere4);
+    scene->addSphere(sphere4);
     //scene->addSphere(sphere5);
     /*scene->addSphere(sphere6);
     scene->addSphere(sphere7);*/
-    //scene->addMesh(klee);
     scene->addMesh(sus);
     scene->addMesh(sus2);
     scene->addMesh(sus3);

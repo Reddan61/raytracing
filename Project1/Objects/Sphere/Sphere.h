@@ -14,13 +14,15 @@ public:
 	};
 	Sphere(const glm::vec3& const position, const glm::vec3& const color, float radius = 1.0f, float specular = -1.0f, float reflective = 0);
 
-	void update(GLFWwindow* window, float delta) override;
+	void update(float delta) override;
 	void changePosition(const glm::vec3 const& position) override;
 	glm::vec3 getPosition();
 	glm::vec3 getNormal(const glm::vec3 const& point, const glm::vec3 const& direction) override;
 
 	SphereShader getShader();
 	static VkDeviceSize getBufferSize();
+
+	bool isUpdated();
 private:
 	float radius;
 	glm::vec3 position;

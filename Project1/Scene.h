@@ -60,6 +60,8 @@ public:
 
 	void setAA(int num);
 
+	std::vector<std::shared_ptr<Sphere>>* getSpheres();
+
 	void update(GLFWwindow* window, float delta);
 private:
 	std::vector<std::shared_ptr<Object>> *SceneObjects = nullptr;

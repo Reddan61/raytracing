@@ -1,9 +1,8 @@
 #include "VulkanBuffer.h"
 
-VulkanBuffer::VulkanBuffer(VulkanInit* vulkan_init, bool local_device)
+VulkanBuffer::VulkanBuffer(VulkanInit* vulkan_init)
 {
     this->vulkan_init = vulkan_init;
-    this->local_device = local_device;
 }
 
 VulkanBuffer::~VulkanBuffer()
@@ -49,65 +48,17 @@ void VulkanBuffer::_create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     vkBindBufferMemory(this->vulkan_init->getLogicalDevice(), buffer, bufferMemory, 0);
 }
 
-void VulkanBuffer::_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+void VulkanBuffer::_copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize src_offset, VkDeviceSize dst_offset)
 {
     VkCommandBuffer commandBuffer = this->begin_single_time_commands();
 
     VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = src_offset;
+    copyRegion.dstOffset = dst_offset;
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
     this->end_single_time_commands(commandBuffer);
-}
-
-void VulkanBuffer::_create_local_buffer(const void* buffer_data, VkDeviceSize buffer_size, VkBufferUsageFlags usage)
-{
-    this->buffer_size = buffer_size;
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-
-    this->VulkanBuffer::_create_buffer(
-        buffer_size,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        stagingBuffer,
-        stagingBufferMemory
-    );
-
-    void* data;
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory, 0, buffer_size, 0, &data);
-        memcpy(data, buffer_data, buffer_size);
-    vkUnmapMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory);
-
-    this->VulkanBuffer::_create_buffer(
-        buffer_size,
-        usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        this->buffer,
-        this->buffer_memory
-    );
-
-    this->VulkanBuffer::_copy_buffer(stagingBuffer, this->buffer, buffer_size);
-
-    vkDestroyBuffer(this->vulkan_init->getLogicalDevice(), stagingBuffer, nullptr);
-    vkFreeMemory(this->vulkan_init->getLogicalDevice(), stagingBufferMemory, nullptr);
-}
-
-void VulkanBuffer::_create_host_buffer(const void* buffer_data, VkDeviceSize buffer_size, VkBufferUsageFlags usage)
-{
-    this->buffer_size = buffer_size;
-
-    this->VulkanBuffer::_create_buffer(
-        buffer_size,
-        usage,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        this->buffer,
-        this->buffer_memory
-    );
-
-    vkMapMemory(this->vulkan_init->getLogicalDevice(), this->buffer_memory, 0, buffer_size, 0, &this->buffer_mapped);
-        memcpy(this->buffer_mapped, buffer_data, buffer_size);
 }
 
 uint32_t VulkanBuffer::find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties)

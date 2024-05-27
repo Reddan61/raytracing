@@ -1,7 +1,9 @@
 #include "RotationMatrix.h"
 
-RotationMatrix::RotationMatrix(float xAngle, float yAngle)
+RotationMatrix::RotationMatrix(float xAngle, float yAngle, bool isLockedY)
 {
+	this->isLockedY = isLockedY;
+
 	this->rotationX = glm::mat4x4(0);
 	this->rotationY = glm::mat4x4(0);
 
@@ -49,11 +51,13 @@ float RotationMatrix::getRotationY()
 
 void RotationMatrix::setRotationX(float angle)
 {
-	if (angle >= 89.0f) {
-		angle = 89.0f;
-	}
-	else if (angle <= -89.0f) {
-		angle = -89.0f;
+	if (isLockedY) {
+		if (angle >= 89.0f) {
+			angle = 89.0f;
+		}
+		else if (angle <= -89.0f) {
+			angle = -89.0f;
+		}
 	}
 
 	this->rotationXAngle = angle;

@@ -485,7 +485,7 @@ VkSurfaceFormatKHR VulkanInit::choose_swap_surface_format(const std::vector<VkSu
 VkPresentModeKHR VulkanInit::choose_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
     for (const auto& availablePresentMode : availablePresentModes) {
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+        if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
             return availablePresentMode;
         }
     }

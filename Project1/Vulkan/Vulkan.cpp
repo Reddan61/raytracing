@@ -503,7 +503,7 @@ void Vulkan::create_scene_buffer(Scene* scene)
     auto scene_buffer_data = scene->getSceneBuffer();
     VkDeviceSize bufferSize = scene->getSceneBufferSize();
 
-    this->scene_buffer = new VulkanUniformBuffer(this->vulkan_init, false);
+    this->scene_buffer = new VulkanHostBuffer(this->vulkan_init);
     this->scene_buffer->create_buffer(&scene_buffer_data, bufferSize);
 
     //this->create_buffer(
@@ -522,7 +522,29 @@ void Vulkan::update_buffers(Scene* scene)
     auto scene_data = scene->getSceneBuffer();
     auto scene_size = scene->getSceneBufferSize();
 
-    this->scene_buffer->update(&scene_data, scene_size);
+    this->scene_buffer->update(&scene_data, scene_size, 0, 0);
+    this->update_spheres(scene);
+}
+
+void Vulkan::update_spheres(Scene* scene)
+{
+    auto spheres = scene->getSpheres();
+
+    if (spheres == nullptr) return;
+    
+    VkDeviceSize single_size = Sphere::getBufferSize();
+
+    for (size_t i = 0; i < spheres->size(); i++) {
+        Sphere* sphere = spheres->at(i).get();
+
+        if (!sphere->isUpdated()) {
+            continue;
+        };
+
+        Sphere::SphereShader sphere_shader = sphere->getShader();
+        VkDeviceSize offset = single_size * i;
+        this->spheres_buffer->update(&sphere_shader, single_size, 0, offset);
+    }
 }
 
 void Vulkan::create_spheres_buffer(Scene* scene)
@@ -531,7 +553,7 @@ void Vulkan::create_spheres_buffer(Scene* scene)
 
     VkDeviceSize bufferSize = scene->getSpheresBufferSize();
 
-    this->spheres_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->spheres_buffer = new VulkanLocalBuffer(this->vulkan_init);
     this->spheres_buffer->create_buffer(spheres.data(), bufferSize);
 }
 
@@ -541,7 +563,7 @@ void Vulkan::create_triangles_buffer(Scene* scene)
 
     VkDeviceSize bufferSize = scene->getTrianglesBufferSize();
 
-    this->triangles_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->triangles_buffer = new VulkanLocalBuffer(this->vulkan_init);
     this->triangles_buffer->create_buffer(triangles.data(), bufferSize);
 }
 
@@ -549,8 +571,8 @@ void Vulkan::create_bvhs_buffers(Scene* scene)
 {
     auto bvh = scene->getSceneBVHsBuffer();
 
-    this->bvhs_origins_buffer = new VulkanStorageBuffer(this->vulkan_init);
-    this->bvhs_leaves_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->bvhs_origins_buffer = new VulkanLocalBuffer(this->vulkan_init);
+    this->bvhs_leaves_buffer = new VulkanLocalBuffer(this->vulkan_init);
 
     this->bvhs_origins_buffer->create_buffer(bvh->origins.data(), bvh->origin_size);
     this->bvhs_leaves_buffer->create_buffer(bvh->leaves.data(), bvh->leaves_size);
@@ -562,7 +584,7 @@ void Vulkan::create_point_lights_buffer(Scene* scene)
 
     VkDeviceSize bufferSize = scene->getPointLightsBufferSize();
 
-    this->point_lights_buffer = new VulkanStorageBuffer(this->vulkan_init);
+    this->point_lights_buffer = new VulkanLocalBuffer(this->vulkan_init);
     this->point_lights_buffer->create_buffer(pointLights.data(), bufferSize);
 }
 

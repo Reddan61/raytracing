@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Animation\Animation.cpp" />
     <ClCompile Include="Light\AmbientLight.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Light\DirectionalLight.cpp" />
@@ -154,9 +155,9 @@
     <ClCompile Include="Objects\Triangle\Triangle.cpp" />
     <ClCompile Include="Objects\TriangleMesh\TriangleMesh.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="Vulkan\VulkanBuffers\VulkanUniformBuffer\VulkanUniformBuffer.cpp" />
+    <ClCompile Include="Vulkan\VulkanBuffers\VulkanHostBuffer\VulkanHostBuffer.cpp" />
     <ClCompile Include="Vulkan\VulkanBuffers\VulkanBuffer\VulkanBuffer.cpp" />
-    <ClCompile Include="Vulkan\VulkanBuffers\VulkanStorageBuffer\VulkanStorageBuffer.cpp" />
+    <ClCompile Include="Vulkan\VulkanBuffers\VulkanLocalBuffer\VulkanLocalBuffer.cpp" />
     <ClCompile Include="Vulkan\VulkanInit\VulkanInit.cpp" />
     <ClCompile Include="Vulkan\Vulkan.cpp" />
     <ClCompile Include="Window\Window.cpp" />
@@ -165,6 +166,7 @@
     <None Include="openal32.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation\Animation.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Light\AmbientLight.h" />
     <ClInclude Include="Camera.h" />
@@ -182,9 +184,9 @@
     <ClInclude Include="Objects\Triangle\Triangle.h" />
     <ClInclude Include="Objects\TriangleMesh\TriangleMesh.h" />
     <ClInclude Include="Utils.h" />
-    <ClInclude Include="Vulkan\VulkanBuffers\VulkanUniformBuffer\VulkanUniformBuffer.h" />
+    <ClInclude Include="Vulkan\VulkanBuffers\VulkanHostBuffer\VulkanHostBuffer.h" />
     <ClInclude Include="Vulkan\VulkanBuffers\VulkanBuffer\VulkanBuffer.h" />
-    <ClInclude Include="Vulkan\VulkanBuffers\VulkanStorageBuffer\VulkanStorageBuffer.h" />
+    <ClInclude Include="Vulkan\VulkanBuffers\VulkanLocalBuffer\VulkanLocalBuffer.h" />
     <ClInclude Include="Vulkan\VulkanInit\VulkanInit.h" />
     <ClInclude Include="Vulkan\Vulkan.h" />
     <ClInclude Include="Window\Window.h" />

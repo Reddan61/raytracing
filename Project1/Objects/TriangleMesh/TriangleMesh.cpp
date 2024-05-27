@@ -7,7 +7,7 @@ TriangleMesh::TriangleMesh(
     this->sortTriangles(triangles, BVH_Axis::Y);
 
     this->polygons = triangles;
-    this->rotation_matrix = new RotationMatrix(0.0f, 0.0f);
+    this->rotation_matrix = new RotationMatrix(0.0f, 0.0f, false);
 
     this->bvh = this->calculateBVH(this->polygons, 0, this->polygons->size());
 }
@@ -38,7 +38,7 @@ size_t TriangleMesh::getTrianglesNum()
     return this->polygons->size();
 }
 
-void TriangleMesh::update(GLFWwindow* window, float delta)
+void TriangleMesh::update(float delta)
 {
 }
 

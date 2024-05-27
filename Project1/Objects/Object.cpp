@@ -21,3 +21,9 @@ void Object::rotate(float xAngle, float yAngle)
 	this->rotation_matrix->setRotationY(this->rotation_matrix->getRotationY() + xAngle);
 }
 
+void Object::setAnimation(Animation* animation)
+{
+	this->animation = animation;
+	this->animation->start();
+}
+
