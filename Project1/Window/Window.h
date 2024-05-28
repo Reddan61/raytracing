@@ -10,7 +10,7 @@ class Window
 friend static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 public:
-	Window(const uint32_t WIDTH, const uint32_t HEIGHT, Scene *scene);
+	Window(const uint32_t WIDTH, const uint32_t HEIGHT, Scene *scene, bool isFullScreen = false);
 	~Window();
 
 	void run();

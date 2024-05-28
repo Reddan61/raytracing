@@ -1,8 +1,7 @@
 #include "VulkanHostBuffer.h"
 
-VulkanHostBuffer::VulkanHostBuffer(VulkanInit* vulkan_init, VkBufferUsageFlagBits usage) : VulkanBuffer(vulkan_init)
+VulkanHostBuffer::VulkanHostBuffer(VulkanInit* vulkan_init, VkBufferUsageFlagBits usage) : VulkanBuffer(vulkan_init, usage)
 {
-    this->usage = usage;
 }
 
 VulkanHostBuffer::~VulkanHostBuffer()

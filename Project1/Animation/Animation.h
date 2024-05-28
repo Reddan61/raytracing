@@ -5,13 +5,13 @@
 class Animation
 {
 public:
-	Animation(glm::vec3 start, glm::vec3 end, float speed, bool circled = false);
+	Animation(glm::vec4 start, glm::vec4 end, float speed, bool circled = false);
 	~Animation();
 
 	void start();
 	void stop();
 
-	glm::vec3 getPosition();
+	glm::vec4 getPosition();
 
 	bool update(float delta);
 private:
@@ -19,6 +19,6 @@ private:
 	bool is_updated = false;
 	bool circled = false;
 	float speed = 0.0f;
-	glm::vec3 _start, _end, _current;
+	glm::vec4 _start, _end, _current;
 };
 

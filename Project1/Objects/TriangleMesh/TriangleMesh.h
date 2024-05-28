@@ -26,14 +26,12 @@ public:
 	);
 	~TriangleMesh();
 
-	glm::vec3 getNormal(const glm::vec3 const& point, const glm::vec3 const& direction) override;
-
 	std::vector<Triangle*>* getTriangles();
 	size_t getTrianglesNum();
 
 	void update(float delta) override;
 
-	void changePosition(const glm::vec3 const& position) override;
+	void changePosition(const glm::vec4 const& position) override;
 	void rotate(float xAngle, float yAngle);
 
 	BVHBuffer getBVHBuffer(size_t bvhs_offset, size_t triangles_offset);
@@ -56,9 +54,11 @@ private:
 	};
 
 	std::vector<Triangle*> *polygons = nullptr;
+	glm::vec4 center;
 	BVHNode* bvh = nullptr;
 
 	TriangleMesh::BVHNode* calculateBVH(std::vector<Triangle*>* triangles, size_t start, size_t end);
+	void calculateCenter();
 
 	void sortTriangles(std::vector<Triangle*>* triangles, BVH_Axis axis);
 

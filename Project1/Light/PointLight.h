@@ -10,12 +10,14 @@ public:
 		alignas(16) glm::vec4 position;
 	};
 
-	PointLight(const glm::vec3& const position, float bright, float shininess);
+	PointLight(const glm::vec4& const position, float bright, float shininess);
 
-	glm::vec3 getLightVector(glm::vec3& point) override;
-	bool hasPosition() override;
+	glm::vec4 getLightVector(glm::vec4& point);
 	float getMaxT() override;
 	PointLightShader getBuffer();
 	static VkDeviceSize getBufferSize();
+	glm::vec4 getPosition();
+private:
+	glm::vec4 position;
 };
 

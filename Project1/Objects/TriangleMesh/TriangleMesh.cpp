@@ -8,6 +8,7 @@ TriangleMesh::TriangleMesh(
 
     this->polygons = triangles;
     this->rotation_matrix = new RotationMatrix(0.0f, 0.0f, false);
+    this->calculateCenter();
 
     this->bvh = this->calculateBVH(this->polygons, 0, this->polygons->size());
 }
@@ -21,11 +22,6 @@ TriangleMesh::~TriangleMesh()
     if (this->rotation_matrix != nullptr) {
         delete this->rotation_matrix;
     }
-}
-
-glm::vec3 TriangleMesh::getNormal(const glm::vec3 const& point, const glm::vec3 const& direction)
-{
-    return glm::vec3();
 }
 
 std::vector<Triangle*>* TriangleMesh::getTriangles()
@@ -42,18 +38,21 @@ void TriangleMesh::update(float delta)
 {
 }
 
-void TriangleMesh::changePosition(const glm::vec3 const& position)
+void TriangleMesh::changePosition(const glm::vec4 const& position)
 {
     if (this->polygons == nullptr) return;
 
     int size = this->polygons->size();
 
+    glm::vec4 new_center = position - this->center;
+
     for (int i = 0; i < size; i++) {
         Triangle* triangle = this->polygons->at(i);
         
-        triangle->changePosition(position);
+        triangle->changePosition(new_center);
     }
 
+    this->calculateCenter();
     this->bvh = this->calculateBVH(this->polygons, 0, this->polygons->size());
 }
 
@@ -61,22 +60,10 @@ void TriangleMesh::rotate(float xAngle, float yAngle)
 {
     if (this->polygons == nullptr) return;
 
-    int size = this->polygons->size();
-
-    glm::vec4 center = glm::vec4(0.0f);
-
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < this->polygons->size(); i++) {
         Triangle* triangle = this->polygons->at(i);
 
-        center += triangle->getCentroid();
-    }
-
-    center /= size;
-
-    for (int i = 0; i < size; i++) {
-        Triangle* triangle = this->polygons->at(i);
-
-        triangle->rotate(xAngle, yAngle, center);
+        triangle->rotate(xAngle, yAngle, this->center);
     }
 
     this->bvh = this->calculateBVH(this->polygons, 0, this->polygons->size());
@@ -173,6 +160,22 @@ TriangleMesh::BVHNode* TriangleMesh::calculateBVH(std::vector<Triangle*>* triang
     }
 
     return node;
+}
+
+void TriangleMesh::calculateCenter()
+{
+    size_t size = this->polygons->size();
+    glm::vec4 center = glm::vec4(0.0f);
+
+    for (int i = 0; i < size; i++) {
+        Triangle* triangle = this->polygons->at(i);
+
+        center += triangle->getCentroid();
+    }
+
+    center /= size;
+
+    this->center = center;
 }
 
 void TriangleMesh::sortTriangles(std::vector<Triangle*>* triangles, BVH_Axis axis)

@@ -1,6 +1,6 @@
 #include "Animation.h"
 
-Animation::Animation(glm::vec3 start, glm::vec3 end, float speed, bool circled)
+Animation::Animation(glm::vec4 start, glm::vec4 end, float speed, bool circled)
 {
 	this->_start = start;
 	this->_current = start;
@@ -26,7 +26,7 @@ void Animation::stop()
 	this->is_stop = true;
 }
 
-glm::vec3 Animation::getPosition()
+glm::vec4 Animation::getPosition()
 {
 	return this->_current;
 }
@@ -37,17 +37,17 @@ bool Animation::update(float delta)
 		return false;
 	} 
 
-	glm::vec3 direction = glm::normalize(this->_end - this->_current);
+	glm::vec4 direction = glm::normalize(this->_end - this->_current);
 	float new_speed = this->speed * delta;
 	float distance = glm::distance(this->_current, this->_end);
 
 	if (distance > new_speed) {
-		glm::vec3 new_current = this->_current + (direction * new_speed);
+		glm::vec4 new_current = this->_current + (direction * new_speed);
 		this->_current = new_current;
 	}
 	else {
 		if (this->circled) {
-			glm::vec3 temp = this->_start;
+			glm::vec4 temp = this->_start;
 			this->_start = this->_end;
 			this->_end = temp;
 			this->_current = this->_start;

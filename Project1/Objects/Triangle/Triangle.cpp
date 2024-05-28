@@ -1,17 +1,17 @@
 #include "Triangle.h"
 
 Triangle::Triangle(
-    const glm::vec3 const& A,
-    const glm::vec3 const& B,
-    const glm::vec3 const& C,
-    const glm::vec3 const& color,
+    const glm::vec4 const& A,
+    const glm::vec4 const& B,
+    const glm::vec4 const& C,
+    const glm::vec4 const& color,
     float specular,
     float reflective
 )
 {
-    this->A = glm::vec4(A, 1.0f);
-    this->B = glm::vec4(B, 1.0f);
-    this->C = glm::vec4(C, 1.0f);
+    this->A = A;
+    this->B = B;
+    this->C = C;
 
     this->color = color;
     this->specular = specular;
@@ -29,23 +29,13 @@ Triangle::~Triangle()
     }
 }
 
-glm::vec3 Triangle::getNormal(const glm::vec3 const& point, const glm::vec3 const& direction)
-{
-    glm::vec3 AB = this->B - this->A;
-    glm::vec3 AC = this->C - this->A;
-
-    glm::vec3 normal = glm::normalize(glm::cross(AB, AC));
-
-    return normal;
-}
-
 Triangle::TriangleShader Triangle::getShader()
 {
     TriangleShader result;
     result.A = this->A;
     result.B = this->B;
     result.C = this->C;
-    result.color = glm::vec4(this->getColor(), 1.0f);
+    result.color = this->getColor();
     result.reflective = this->getReflective();
     result.specular = this->getSpecular();
     result.single_side = this->isSingleSide ? 1 : 0;
@@ -56,8 +46,6 @@ Triangle::TriangleShader Triangle::getShader()
 void Triangle::rotate(float xAngle, float yAngle, glm::vec4 center)
 {
     this->Object::rotate(xAngle, yAngle);
-
-    //auto centroid = this->getCentroid();
 
     this->A -= center;
     this->B -= center;
@@ -77,11 +65,11 @@ VkDeviceSize Triangle::getBufferSize()
     return sizeof(Triangle::TriangleShader);
 }
 
-void Triangle::changePosition(const glm::vec3 const& position)
+void Triangle::changePosition(const glm::vec4 const& position)
 {
-    this->A = this->A + glm::vec4(position, 1.0f);
-    this->B = this->B + glm::vec4(position, 1.0f);
-    this->C = this->C + glm::vec4(position, 1.0f);
+    this->A = this->A + position;
+    this->B = this->B + position;
+    this->C = this->C + position;
 
     this->calculateCentroid();
 }

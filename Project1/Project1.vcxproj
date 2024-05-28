@@ -145,10 +145,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
     <ClCompile Include="Light\PointLight.cpp" />
-    <ClCompile Include="Render.cpp" />
     <ClCompile Include="Rotation\RotationMatrix.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Sky\Sky.cpp" />
     <ClCompile Include="Objects\Sphere\Sphere.cpp" />
     <ClCompile Include="ThreadPool\Thread.cpp" />
     <ClCompile Include="ThreadPool\ThreadPool.cpp" />
@@ -174,10 +172,8 @@
     <ClInclude Include="Light\Light.h" />
     <ClInclude Include="Objects\Object.h" />
     <ClInclude Include="Light\PointLight.h" />
-    <ClInclude Include="Render.h" />
     <ClInclude Include="Rotation\RotationMatrix.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="Sky\Sky.h" />
     <ClInclude Include="Objects\Sphere\Sphere.h" />
     <ClInclude Include="ThreadPool\Thread.h" />
     <ClInclude Include="ThreadPool\ThreadPool.h" />

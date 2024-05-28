@@ -25,7 +25,7 @@ public:
 	void draw_frame(GLFWwindow* window, Scene* scene);
 	void stop();
 private:
-	const int MAX_FRAMES_IN_FLIGHT = 2;
+	const int MAX_FRAMES_IN_FLIGHT = 1;
 	uint32_t current_frame = 0;
 
 	bool framebuffer_resized = false;

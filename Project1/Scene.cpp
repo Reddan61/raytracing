@@ -118,6 +118,7 @@ Scene::SceneShader Scene::getSceneBuffer()
 	auto bvhs = this->getSceneBVHsBuffer();
 
 	result.aa = this->aa; 
+	result.shadow_rays = this->shadow_rays;
 	result.spheres_num = this->spheres->size();
 	result.triangles_num = this->getTrianglesNum();
 	result.point_ligts_num = this->pointLights->size();
@@ -191,7 +192,23 @@ void Scene::addPointLight(PointLight* light)
 
 void Scene::setAA(int num)
 {
+	if (num <= 0) {
+		num = 1;
+	}
+
 	this->aa = num;
+}
+
+void Scene::setSoftShadowRays(int num)
+{
+	if (num <= 0) {
+		num = 1;
+	}
+	else if (num > 8) {
+		num = 8;
+	}
+
+	this->shadow_rays = num;
 }
 
 std::vector<std::shared_ptr<Sphere>>* Scene::getSpheres()
@@ -234,9 +251,4 @@ std::vector<std::shared_ptr<Light>>* Scene::getSceneLights()
 Camera* Scene::getCamera()
 {
 	return this->camera;
-}
-
-Sky* Scene::getSky()
-{
-	return this->sky;
 }

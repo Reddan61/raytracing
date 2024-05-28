@@ -6,18 +6,17 @@
 class Object
 {
 public:
-	glm::vec3 getColor();
+	glm::vec4 getColor();
 	float getSpecular();
 	float getReflective();
 
-	virtual glm::vec3 getNormal(const glm::vec3 const &point, const glm::vec3 const &direction) = 0;
 	virtual void update(float delta) = 0;
-	virtual void changePosition(const glm::vec3 const& position) = 0;
+	virtual void changePosition(const glm::vec4 const& position) = 0;
 	void rotate(float xAngle, float yAngle);
 	void setAnimation(Animation *animation);
 protected: 
 	bool is_updated = false;
-	glm::vec3 color;
+	glm::vec4 color;
 	float reflective = 0.f;
 	float specular = -1;
 	RotationMatrix* rotation_matrix = nullptr;

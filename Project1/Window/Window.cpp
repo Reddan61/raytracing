@@ -5,13 +5,18 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     app->on_resize();
 }
 
-Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT, Scene* scene)
+Window::Window(const uint32_t WIDTH, const uint32_t HEIGHT, Scene* scene, bool isFullScreen)
 {
     this->scene = scene;
     glfwInit();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    this->_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan window", nullptr, nullptr);
+    this->_window = glfwCreateWindow(
+        WIDTH, HEIGHT, 
+        "Vulkan window", 
+        isFullScreen ? glfwGetPrimaryMonitor() : nullptr, 
+        nullptr
+    );
     glfwMakeContextCurrent(this->_window);
     glfwSwapInterval(0);
     glfwSetWindowUserPointer(this->_window, this);

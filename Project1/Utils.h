@@ -6,6 +6,5 @@
 #include "./Objects/TriangleMesh/TriangleMesh.h"
 
 namespace Utils {
-	TriangleMesh* LoadCustomFormatFile(const std::string const &filename);
-    std::vector<Triangle*>* loadOBJ(const std::string& filename);
+    std::vector<Triangle*>* loadOBJ(const std::string& filename, const glm::vec4& const color, float specular, float reflective);
 }

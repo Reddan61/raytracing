@@ -45,7 +45,6 @@ struct Hit {
     float t;
     bool is_sphere;
     bool is_triangle;
-    bool is_aabb;
     Sphere sphere;
     Triangle triangle;
     AABB aabb;
@@ -69,7 +68,7 @@ layout (std140, binding = 1) readonly buffer SpheresBuffer {
     Sphere spheres[];
 };
 layout (binding = 2) uniform SceneBuffer {
-    int spheres_num, triangles_num, point_lights_num, aa, bvh_origins, bvh_leaves;
+    int spheres_num, triangles_num, point_lights_num, aa, bvh_origins, bvh_leaves, shadow_rays;
     float ambient_bright;
     DirectionalLight directional_light;
     Camera camera;
@@ -222,37 +221,17 @@ Hit getTrianglesIntersection(Hit intersection, Ray ray, int start_index, int end
 			intersection.triangle = triangle;
             intersection.is_triangle = true;
             intersection.is_sphere = false;
-            intersection.is_aabb = false;
 		}
 		if (triangle_hit.y < intersection.t && min_t < triangle_hit.y && triangle_hit.y < max_t) {
 			intersection.t = triangle_hit.y;
 			intersection.triangle = triangle;
             intersection.is_triangle = true;
             intersection.is_sphere = false;
-            intersection.is_aabb = false;
 		}
 	}
 
     return intersection;
 }
-
-/*Hit getAABBIntersection(Hit intersection, Ray ray) {
-    for (int i = 0; i < scene.bvh_origins; i++) {
-        BVHNode node = bvh_origins[i];
-
-        vec2 hit = getAABBHit(ray, node.box);
-
-        if (hit.x != INFINITY && hit.y != INFINITY) {
-            intersection.is_sphere = false;
-            intersection.is_triangle = false;
-            intersection.is_aabb = true;
-            intersection.aabb = node.box;
-            intersection.t = hit.x;
-        }
-    }
-
-    return intersection;
-}*/
 
 Hit getSphereIntersection(Hit intersection, Ray ray, float min_t, float max_t) {
     for (int i = 0; i < scene.spheres_num; i++) {
@@ -265,14 +244,12 @@ Hit getSphereIntersection(Hit intersection, Ray ray, float min_t, float max_t) {
 			intersection.sphere = sphere;
             intersection.is_triangle = false;
             intersection.is_sphere = true;
-            intersection.is_aabb = false;
 		}
 		if (sphere_hit.y < intersection.t && min_t < sphere_hit.y && sphere_hit.y < max_t) {
 			intersection.t = sphere_hit.y;
 			intersection.sphere = sphere;
             intersection.is_triangle = false;
             intersection.is_sphere = true;
-            intersection.is_aabb = false;
 		}
 	}
 
@@ -367,7 +344,6 @@ Hit getIntersection(Ray ray, float min_t, float max_t) {
     intersection.t = INFINITY;
     intersection.is_sphere = false;
     intersection.is_triangle = false;
-    intersection.is_aabb = false;
 
 	intersection = getSphereIntersection(intersection, ray, min_t, max_t);
 
@@ -389,27 +365,6 @@ vec3 getTriangleNormal(Triangle triangle) {
     return normal;
 }
 
-vec3 getAABBNormal(vec3 point, AABB box) {
-    vec3 normal;
-
-    // Проверяем, с какой стороны AABB находится точка
-    if (point.x < box.min.x + 0.001) {
-        normal = vec3(-1.0, 0.0, 0.0); // Нормаль к грани слева
-    } else if (point.x > box.max.x - 0.001) {
-        normal = vec3(1.0, 0.0, 0.0); // Нормаль к грани справа
-    } else if (point.y < box.min.y + 0.001) {
-        normal = vec3(0.0, -1.0, 0.0); // Нормаль к грани снизу
-    } else if (point.y > box.max.y - 0.001) {
-        normal = vec3(0.0, 1.0, 0.0); // Нормаль к грани сверху
-    } else if (point.z < box.min.z + 0.001) {
-        normal = vec3(0.0, 0.0, -1.0); // Нормаль к грани сзади
-    } else {
-        normal = vec3(0.0, 0.0, 1.0); // Нормаль к грани спереди
-    }
-
-    return normal;
-}
-
 struct ObjectInfo {
     vec3 obj_color;
     float obj_specular;
@@ -424,9 +379,6 @@ ObjectInfo getObjectInfoByHits(Hit intersection) {
     } else if (intersection.is_triangle) {
         result.obj_color = intersection.triangle.color.xyz;
         result.obj_specular = intersection.triangle.specular;
-    } else if (intersection.is_aabb) {
-        result.obj_color = vec3(0.0, 1.0, 0.0);
-        result.obj_specular = -1;
     }
 
     return result;
@@ -444,7 +396,17 @@ const vec3 offsets[8] = {
   vec3(-light_size, light_size, light_size)
 };
 
-#define SHADOW_RAYS 1
+const float direction_light_size = 0.005;
+const vec3 offsets_direction_light[8] = {
+  vec3(-direction_light_size, -direction_light_size, -direction_light_size),
+  vec3(direction_light_size, -direction_light_size, -direction_light_size),
+  vec3(direction_light_size, direction_light_size, -direction_light_size),
+  vec3(-direction_light_size, direction_light_size, -direction_light_size),
+  vec3(-direction_light_size, -direction_light_size, direction_light_size),
+  vec3(direction_light_size, -direction_light_size, direction_light_size),
+  vec3(direction_light_size, direction_light_size, direction_light_size),
+  vec3(-direction_light_size, direction_light_size, direction_light_size)
+};
 
 float getShadowPointLight(
     vec3 point,
@@ -453,7 +415,7 @@ float getShadowPointLight(
 ) {
     float intensity = 0.0f;
 
-    for(int i = 0; i < SHADOW_RAYS; i++) {
+    for(int i = 0; i < scene.shadow_rays; i++) {
         vec3 position = light_position + offsets[i];
 
         vec3 light_vector = GetPointLightVector(point, position);
@@ -468,7 +430,7 @@ float getShadowPointLight(
 	    }
     }
 
-    intensity /= SHADOW_RAYS;
+    intensity /= scene.shadow_rays;
 
     return 1.0f - intensity;
 }
@@ -480,8 +442,8 @@ float getShadowDirectionalLight(
 ) {
     float intensity = 0.0f;
 
-    for(int i = 0; i < SHADOW_RAYS; i++) {
-        vec3 new_light_vector = light_vector + offsets[i];
+    for(int i = 0; i < scene.shadow_rays; i++) {
+        vec3 new_light_vector = normalize(light_vector + offsets_direction_light[i]);
 
         Ray shadow_ray;
         shadow_ray.origin = point + EPSILON * normal;
@@ -493,7 +455,7 @@ float getShadowDirectionalLight(
 	    }
     }
 
-    intensity /= SHADOW_RAYS;
+    intensity /= scene.shadow_rays;
 
     return 1.0f - intensity;
 }
@@ -529,12 +491,12 @@ vec3 ComputeLight(
 
     ObjectInfo object_info = getObjectInfoByHits(intersection);
 
-    vec3 direction_light_position = scene.directional_light.direction.xyz;
+    vec3 direction_light_vector = scene.directional_light.direction.xyz;
 
-    float shadow_intensity = getShadowDirectionalLight(point, normal, direction_light_position);
+    float shadow_intensity = getShadowDirectionalLight(point, normal, direction_light_vector);
 
     final_color += CalculatePhongLight(
-        direction_light_position,
+        direction_light_vector,
         view, normal,
         object_info, scene.directional_light.shininess, 
         scene.directional_light.bright, shadow_intensity
@@ -546,7 +508,7 @@ vec3 ComputeLight(
 
         vec3 light_vector = GetPointLightVector(point, light_position);
 
-        float shadow_intensity = getShadowPointLight(point, normal, light_position);
+        shadow_intensity = getShadowPointLight(point, normal, light_position);
 
         final_color += CalculatePhongLight(
             light_vector, view, normal,
@@ -583,8 +545,6 @@ vec3 traceRay(
             normal = getSphereNormal(point, intersection.sphere);
         } else if(intersection.is_triangle) {
             normal = getTriangleNormal(intersection.triangle);
-        } else if(intersection.is_aabb) {
-            normal = getAABBNormal(point, intersection.aabb);
         }
 
         vec3 view = ray.direction * -1.0;

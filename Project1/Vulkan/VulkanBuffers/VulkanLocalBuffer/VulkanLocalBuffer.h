@@ -12,5 +12,4 @@ public:
 private:
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
-	VkBufferUsageFlagBits usage;
 };

@@ -1,6 +1,6 @@
 #include "Object.h"
 
-glm::vec3 Object::getColor()
+glm::vec4 Object::getColor()
 {
 	return this->color;
 }

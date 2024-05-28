@@ -1,10 +1,7 @@
 #include "./Utils.h"
 
-std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
+std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename, const glm::vec4& const color, float specular, float reflective)
 {
-    float specular = -1.0f;
-    float reflective = 0.0f;
-
     std::vector<Triangle*>* triangles = new std::vector<Triangle*>();
 
     std::ifstream file(filename);
@@ -13,7 +10,7 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
         return triangles;
     }
 
-    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec4> vertices;
     std::string line;
     while (std::getline(file, line)) {
         std::istringstream iss(line);
@@ -21,8 +18,10 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
         iss >> type;
 
         if (type == "v") {
-            glm::vec3 vertex;
+            glm::vec4 vertex(1.0f, 1.0f, 1.0f, 1.0f);
+
             iss >> vertex.x >> vertex.y >> vertex.z;
+
             vertices.push_back(vertex);
         }
         else if (type == "f") {
@@ -40,7 +39,7 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
                     vertices[indices[0]],
                     vertices[indices[1]],
                     vertices[indices[2]],
-                    glm::vec3(0.0, 0.0, 1.0),
+                    color,
                     specular,
                     reflective
                 );
@@ -51,7 +50,7 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
                     vertices[indices[0]],
                     vertices[indices[1]],
                     vertices[indices[2]],
-                    glm::vec3(0.0, 0.0, 1.0),
+                    color,
                     specular,
                     reflective
                 );
@@ -59,7 +58,7 @@ std::vector<Triangle*>* Utils::loadOBJ(const std::string& filename)
                     vertices[indices[2]],
                     vertices[indices[3]],
                     vertices[indices[0]],
-                    glm::vec3(0.0, 0.0, 1.0),
+                    color,
                     specular,
                     reflective
                 );

@@ -4,7 +4,7 @@
 class VulkanBuffer
 {
 public:
-	VulkanBuffer(VulkanInit* vulkan_init);
+	VulkanBuffer(VulkanInit* vulkan_init, VkBufferUsageFlagBits usage);
 	~VulkanBuffer();
 
 	VkBuffer getBuffer();
@@ -17,6 +17,7 @@ protected:
 	VkBuffer buffer;
 	VkDeviceMemory buffer_memory;
 	VkDeviceSize buffer_size;
+	VkBufferUsageFlagBits usage;
 
 	void _create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	void _copy_buffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize src_offset = 0, VkDeviceSize dst_offset = 0);

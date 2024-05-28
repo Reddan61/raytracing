@@ -1,8 +1,9 @@
 #include "VulkanBuffer.h"
 
-VulkanBuffer::VulkanBuffer(VulkanInit* vulkan_init)
+VulkanBuffer::VulkanBuffer(VulkanInit* vulkan_init, VkBufferUsageFlagBits usage)
 {
     this->vulkan_init = vulkan_init;
+    this->usage = usage;
 }
 
 VulkanBuffer::~VulkanBuffer()

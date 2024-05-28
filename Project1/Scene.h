@@ -6,7 +6,6 @@
 #include "Light/AmbientLight.h"
 #include "Light/DirectionalLight.h"
 #include "Light/PointLight.h"
-#include "Sky/Sky.h"
 #include "Objects/Sphere/Sphere.h"
 #include "Objects/Triangle/Triangle.h"
 #include "Objects/TriangleMesh/TriangleMesh.h"
@@ -15,7 +14,7 @@ class Scene
 {
 public:
 	struct SceneShader {
-		int spheres_num, triangles_num, point_ligts_num, aa, bvh_origins, bvh_leaves;
+		int spheres_num, triangles_num, point_ligts_num, aa, bvh_origins, bvh_leaves, shadow_rays;
 		float ambient_bright;
 		DirectionalLight::DirectionalLightShader directional_light;
 		Camera::CameraVulkan camera;
@@ -33,10 +32,8 @@ public:
 	std::vector<std::shared_ptr<Object>>* getSceneObjects();
 	std::vector<std::shared_ptr<Light>>* getSceneLights();
 	Camera* getCamera();
-	Sky* getSky();
 
 	void addSphere(Sphere* sphere);
-	//void addTriangle(Triangle* triangle);
 	void addMesh(TriangleMesh* mesh);
 
 	std::vector<Sphere::SphereShader> getSpheresBuffer();
@@ -59,6 +56,7 @@ public:
 	void addPointLight(PointLight* light);
 
 	void setAA(int num);
+	void setSoftShadowRays(int num);
 
 	std::vector<std::shared_ptr<Sphere>>* getSpheres();
 
@@ -76,13 +74,13 @@ private:
 	std::shared_ptr<DirectionalLight> directionalLight = nullptr;
 	
 	Camera* camera = nullptr;
-	Sky* sky = nullptr;
 
 	size_t getTrianglesNum();
 	size_t triangles_num = 0;
 	Scene::BVHsShader* bvhs_shader = nullptr;
 
 	int aa = 1;
+	int shadow_rays = 1;
 
 	void update_triangles_num(size_t plus_num);
 };

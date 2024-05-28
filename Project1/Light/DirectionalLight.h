@@ -10,14 +10,14 @@ public:
 		alignas(16) glm::vec4 direction;
 	};
 
-	DirectionalLight(const glm::vec3& const direction, float bright, float shininess);
+	DirectionalLight(const glm::vec4& const direction, float bright, float shininess);
 
-	glm::vec3 getLightVector(glm::vec3& point) override;
-	bool hasPosition() override;
+	glm::vec4 getDirection();
+	glm::vec4 getLightVector(glm::vec4& point);
 	float getMaxT() override;
 
 	DirectionalLightShader getBuffer();
 private:
-	glm::vec3 direction;
+	glm::vec4 direction;
 };
 

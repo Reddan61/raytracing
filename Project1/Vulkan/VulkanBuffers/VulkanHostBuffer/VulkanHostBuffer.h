@@ -11,6 +11,5 @@ public:
 	void update(const void* buffer_data, VkDeviceSize buffer_size, VkDeviceSize src_offset, VkDeviceSize dst_offset) override;
 private:
 	void* buffer_mapped = nullptr;
-	VkBufferUsageFlagBits usage;
 };
 
